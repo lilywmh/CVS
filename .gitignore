@@ -1,0 +1,8 @@
+recording_videos/
+_wav/
+all_srt/
+dyad1_250408/
+logs/
+outputs/
+WhisperXMac/
+.DS_Store
