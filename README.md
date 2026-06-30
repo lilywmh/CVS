@@ -16,7 +16,6 @@ control, and environment setup is captured in `environment.yml`.
 config/                   # example path configuration
 data/                     # clean data layout and data documentation
 scripts/                  # grouped canonical replication scripts
-notebooks/                # exploratory notebooks
 outputs/                  # generated tables/model outputs; ignored by Git
 figures/                  # generated figures; ignored by Git
 04_data/                  # legacy derived-data location used by current scripts
@@ -53,7 +52,6 @@ the required CSVs in `04_data/`.
 ## Reproducibility Notes
 
 - Use the numbered scripts in `scripts/` as the canonical pipeline.
-- Treat notebooks as exploratory or diagnostic unless explicitly referenced.
 - Analysis scripts resolve paths relative to the repository root, so they should
   run from any working directory.
 - LLM annotation scripts require API keys in environment variables, not in code.
