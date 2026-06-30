@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 
 """
-01_semantic.py
+01_compute_semantic_sentiment_features.py
 ==============
 Compute semantic and sentiment-alignment features from corrected dyadic
 conversation transcripts.
@@ -32,7 +32,7 @@ Output:
 torch.set_num_threads(min(8, os.cpu_count() or 1))
 
 # ─── PATHS (resolved relative to this script; override via env vars) ──────────
-PROJECT    = Path(__file__).resolve().parent.parent  # cvs_conversation/
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 DATA       = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
 SRT_ROOT   = Path(os.environ.get("CVS_SRT_ROOT", PROJECT / "01_pipeline" / "all_srt"))
 PIPER_DIR  = str(SRT_ROOT / "piper") + "/"

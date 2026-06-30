@@ -12,12 +12,16 @@ control, and environment setup is captured in `environment.yml`.
 ## Repository Layout
 
 ```text
-01_pipeline/              # raw transcription pipeline outputs; ignored by Git
-02_scripts/               # canonical replication scripts
-03_notebooks/             # exploratory notebooks; not the primary pipeline
-04_data/                  # small input/derived CSVs used by scripts
-05_analysis_outputs/      # generated tables and model outputs; ignored by Git
-06_figures/               # generated figures; ignored by Git
+01_pipeline/              # legacy raw/intermediate pipeline outputs; ignored by Git
+config/                   # example path configuration
+data/                     # clean data layout and data documentation
+scripts/                  # grouped canonical replication scripts
+notebooks/                # exploratory notebooks
+outputs/                  # generated tables/model outputs; ignored by Git
+figures/                  # generated figures; ignored by Git
+04_data/                  # legacy derived-data location used by current scripts
+05_analysis_outputs/      # legacy generated-output location; ignored by Git
+06_figures/               # legacy generated-figure location; ignored by Git
 PIPELINE.md               # step-by-step processing and analysis pipeline
 environment.yml           # Conda environment specification
 setup_conda_env.sh        # helper to create/update the Conda environment
@@ -30,7 +34,7 @@ bash setup_conda_env.sh
 conda activate cvs-conversation
 ```
 
-Then follow the script order in `02_scripts/README.md` or the detailed workflow
+Then follow the script order in `scripts/README.md` or the detailed workflow
 in `PIPELINE.md`.
 
 ## Data Requirements
@@ -48,7 +52,7 @@ the required CSVs in `04_data/`.
 
 ## Reproducibility Notes
 
-- Use the numbered scripts in `02_scripts/` as the canonical pipeline.
+- Use the numbered scripts in `scripts/` as the canonical pipeline.
 - Treat notebooks as exploratory or diagnostic unless explicitly referenced.
 - Analysis scripts resolve paths relative to the repository root, so they should
   run from any working directory.

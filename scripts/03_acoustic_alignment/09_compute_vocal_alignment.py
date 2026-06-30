@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-04_vocal_alignment.py
-=====================
+09_compute_vocal_alignment.py
+=============================
 Turn-adjacent vocal entrainment metrics for the CVS study.
 
-Consumes the per-turn prosody table from 03_acoustic_features.py
+Consumes the per-turn prosody table from 08_extract_acoustic_features.py
 (acoustic_turns.csv) and produces dyad-level vocal-alignment features
 (vocal_alignment_dyad.csv) keyed by pair_id + condition.
 
@@ -37,12 +37,12 @@ Output: one row per (pair_id, condition) with columns like
   va_int_*, va_rate_*, plus edge_* variants and n_switch.
 
 NOTE on condition: piper/cloudy are kept as SEPARATE rows (condition is an
-experimental manipulation; do NOT average it away). 05_dissociation_test.py
-enters condition as a covariate.
+experimental manipulation; do NOT average it away).
+10_test_vocal_alignment_incremental_validity.py enters condition as a covariate.
 
 Usage:
-  python 04_vocal_alignment.py
-  python 04_vocal_alignment.py --in ../04_data/acoustic_turns.csv --out ...
+  python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
+  python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py --in 04_data/acoustic_turns.csv --out ...
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 
 CONFIG = {
     "in": PROJECT / "04_data" / "acoustic_turns.csv",

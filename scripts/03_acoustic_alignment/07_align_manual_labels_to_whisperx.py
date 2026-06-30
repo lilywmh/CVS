@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-03a_transfer_labels.py
-======================
+07_align_manual_labels_to_whisperx.py
+=====================================
 Put your MANUAL (corrected) speaker labels onto WhisperX WORD TIMESTAMPS,
 without re-running pyannote diarization.
 
@@ -21,7 +21,8 @@ label. pyannote is never trusted for "who".
 This is forced alignment by text, and it is non-destructive: your .txt files
 are read-only inputs and are never modified.
 
-Output: labeled_turns.csv with schema compatible with 03_acoustic_features.py
+Output: labeled_turns.csv with schema compatible with
+08_extract_acoustic_features.py
   dyad_id, pair_id, condition, Order, turn_idx, speaker, role,
   t_start, t_end, dur, n_words, text, coverage
 
@@ -29,14 +30,15 @@ Output: labeled_turns.csv with schema compatible with 03_acoustic_features.py
 alignment (a per-turn QC flag; low coverage -> treat that turn's prosody
 cautiously).
 
-Then run 03 in transfer mode:
-  python 03_acoustic_features.py --turns-csv ../04_data/labeled_turns.csv \
-                                 --out ../04_data/acoustic_turns.csv
+Then run acoustic extraction in transfer mode:
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py \
+      --turns-csv 04_data/labeled_turns.csv \
+      --out 04_data/acoustic_turns.csv
 
 Dependencies: numpy, pandas (stdlib difflib for alignment)
 Usage:
-  python 03a_transfer_labels.py
-  python 03a_transfer_labels.py --limit 1   # one dyad-session
+  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py
+  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py --limit 1
 """
 from __future__ import annotations
 
@@ -49,7 +51,7 @@ from pathlib import Path
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 
 CONFIG = {
     "manual_dirs": {

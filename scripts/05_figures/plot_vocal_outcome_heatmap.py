@@ -18,12 +18,12 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 DATA = PROJECT / "04_data"
 FIG = PROJECT / "06_figures"
 
 # PRIMARY = connection composite (PC1 of the 3 social scales, matching
-# poster_analysis_pipeline.py); the 4 individual scales follow as secondary.
+# 05_poster_multivariate_analysis.py); the 4 individual scales follow as secondary.
 COMPOSITE_COLS = ["dyad_partner_eval_mean", "dyad_shared_reality_mean",
                   "dyad_enjoyment_mean"]
 OUTC = ["connection_composite", "dyad_partner_eval_mean",

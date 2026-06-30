@@ -77,7 +77,7 @@ THEME = {
 }
 
 # ---- User-configurable paths ------------------------------------------------
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 DATA_DIR = PROJECT / "04_data"              # directory containing CSVs
 # OUTPUT_DIR = Path("./multivariate_output")   # all outputs go here
 

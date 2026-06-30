@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-03_acoustic_features.py
-=======================
+08_extract_acoustic_features.py
+===============================
 Per-turn prosodic feature extraction for the CVS vocal-alignment study.
 
 DESIGN NOTE (read me): the discussion recordings are a SINGLE shared microphone
@@ -9,7 +9,7 @@ DESIGN NOTE (read me): the discussion recordings are a SINGLE shared microphone
 per-speaker audio stream and no way to measure two voices at the same instant.
 Speaker identity comes only from WhisperX diarization ([SPEAKER_00]/[SPEAKER_01]
 in the .srt). Consequently this script measures prosody PER TURN (per diarized
-segment), and 04_vocal_alignment.py measures TURN-ADJACENT entrainment
+segment), and 09_compute_vocal_alignment.py measures TURN-ADJACENT entrainment
 (Levitan & Hirschberg style) rather than continuous synchrony.
 
 Pipeline
@@ -34,9 +34,9 @@ Dependencies:  praat-parselmouth, librosa, numpy, pandas, tqdm, soundfile
   pip install praat-parselmouth librosa soundfile pandas numpy tqdm --break-system-packages
 
 Usage:
-  python 03_acoustic_features.py                 # uses CONFIG defaults
-  python 03_acoustic_features.py --outputs-dir ... --wav-dir ... --out ...
-  python 03_acoustic_features.py --limit 1       # smoke-test on one dyad
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py --outputs-dir ... --wav-dir ... --out ...
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py --limit 1
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ from tqdm import tqdm
 
 # ─── CONFIG (override via CLI) ────────────────────────────────────────────────
 HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parent  # cvs_conversation/
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 
 CONFIG = {
     # WhisperX per-dyad output dirs, each containing one *_discussion_16k.srt
@@ -392,7 +392,7 @@ def process_dyad(srt_path, cfg, role_map, order_map):
 
 
 def process_turns_csv(cfg):
-    """TRANSFER MODE: turns already timestamped by 03a_transfer_labels.py
+    """TRANSFER MODE: turns already timestamped by 07_align_manual_labels_to_whisperx.py
     (manual speaker labels + WhisperX word timestamps). We only add prosody.
 
     This is the RECOMMENDED path: it uses your corrected diarization and never
@@ -483,7 +483,7 @@ def parse_args():
     p.add_argument("--dry-run", action="store_true",
                    help="parse SRT + segment turns only, skip audio (no parselmouth)")
     p.add_argument("--turns-csv", default=None,
-                   help="TRANSFER MODE: timestamped turns from 03a_transfer_labels.py "
+                   help="TRANSFER MODE: timestamped turns from 07_align_manual_labels_to_whisperx.py "
                         "(uses your manual diarization instead of WhisperX SRT labels)")
     a = p.parse_args()
     cfg = dict(CONFIG)

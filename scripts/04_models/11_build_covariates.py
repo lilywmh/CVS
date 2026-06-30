@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-06_build_covariates.py
+11_build_covariates.py
 ======================
 Build a DYAD-LEVEL covariate table from the participant master sheet, for use
-as controls / exploratory moderators in 05_dissociation_test.py.
+as controls / exploratory moderators in
+10_test_vocal_alignment_incremental_validity.py.
 
 SOLID (use directly):
   - age           : 2026 - birth-year (Q18); dyad mean + within-dyad difference
@@ -24,7 +25,10 @@ absolute difference, in case dissimilarity matters).
 Output: 04_data/covariates_dyad.csv (one row per pair_id)
 
 Usage:
-  python 06_build_covariates.py --master /path/to/MASTER_SHEET...csv
+  python scripts/04_models/11_build_covariates.py --master /path/to/master.csv
+
+If --master is omitted, the script looks for common private/master-sheet names
+under data/private, data/raw, and 04_data.
 """
 from __future__ import annotations
 import argparse
@@ -33,8 +37,19 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 CURRENT_YEAR = 2026
+
+MASTER_CANDIDATES = [
+    PROJECT / "data" / "private" / "master_sheet_one_row_per_participant.csv",
+    PROJECT / "data" / "private" / "MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv",
+    PROJECT / "data" / "private" / "participant_master.csv",
+    PROJECT / "data" / "raw" / "master_sheet_one_row_per_participant.csv",
+    PROJECT / "data" / "raw" / "participant_master.csv",
+    PROJECT / "04_data" / "master_sheet_one_row_per_participant.csv",
+    PROJECT / "04_data" / "MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv",
+    PROJECT / "04_data" / "participant_master.csv",
+]
 
 # ---- scale item keys (response scales confirmed from survey screenshots,
 #      reverse-key lists provided by the researcher) --------------------------
@@ -171,10 +186,25 @@ def run(cfg):
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--master", required=True, help="MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv")
+    p.add_argument("--master", default=None,
+                   help="Participant master CSV. If omitted, common private/master-sheet paths are searched.")
     p.add_argument("--out", default=str(PROJECT / "04_data" / "covariates_dyad.csv"))
     a = p.parse_args()
-    return {"master": a.master, "out": a.out}
+
+    master = Path(a.master).expanduser() if a.master else None
+    if master is None:
+        master = next((p for p in MASTER_CANDIDATES if p.exists()), None)
+    if master is None or not master.exists():
+        candidates = "\n".join(f"  - {p}" for p in MASTER_CANDIDATES)
+        raise SystemExit(
+            "No participant master sheet was provided or found.\n\n"
+            "Run with:\n"
+            "  python scripts/04_models/11_build_covariates.py --master /path/to/master.csv\n\n"
+            "Or place one of these files in the repository:\n"
+            f"{candidates}\n\n"
+            "Expected columns include pair_id, role, Q18, Q23, and the scale item columns."
+        )
+    return {"master": str(master), "out": a.out}
 
 
 if __name__ == "__main__":

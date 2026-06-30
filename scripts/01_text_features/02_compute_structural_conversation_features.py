@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 """
-02_extract_conversation_features.py
+02_compute_structural_conversation_features.py
 ===================================
 Extract structural conversation features from corrected dyadic transcripts.
 
@@ -29,7 +29,7 @@ Output:
 CLEAN_CACHE = True
 
 # ─── PATHS (resolved relative to this script; override via env vars) ──────────
-PROJECT    = Path(__file__).resolve().parent.parent  # cvs_conversation/
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 DATA       = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
 SRT_ROOT   = Path(os.environ.get("CVS_SRT_ROOT", PROJECT / "01_pipeline" / "all_srt"))
 PIPER_DIR  = str(SRT_ROOT / "piper") + "/"

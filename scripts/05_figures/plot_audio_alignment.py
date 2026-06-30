@@ -24,7 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 WAV_DIR = PROJECT / "01_pipeline" / "_wav"
 FIG = PROJECT / "06_figures"
 FIG.mkdir(exist_ok=True)

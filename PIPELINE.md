@@ -8,18 +8,18 @@ Record of processing steps for CVS recording → transcription workflow.
 
 | Step | Description        | Input              | Output                    | Script / Tool   |
 |------|--------------------|--------------------|---------------------------|-----------------|
-| 1a   | Semantic/sentiment features | corrected transcripts | `04_data/scientific_dyad_analysis_results.csv` | `02_scripts/01_semantic.py` |
-| 1b   | Structural conversation features | corrected transcripts + transcription log | `04_data/structural_dyad_analysis_mapped.csv` | `02_scripts/02_extract_conversation_features.py` |
-| 1c   | LLM annotation features | corrected transcripts + API access | `05_analysis_outputs/llm_annotation_output/` | `02_scripts/test_annotation.py` |
-| 1d   | Poster multivariate model | semantic + structural + LLM + outcomes | `05_analysis_outputs/multivariate_output/` | `02_scripts/poster_analysis_pipeline.py` |
+| 1a   | Semantic/sentiment features | corrected transcripts | `04_data/scientific_dyad_analysis_results.csv` | `scripts/01_text_features/01_compute_semantic_sentiment_features.py` |
+| 1b   | Structural conversation features | corrected transcripts + transcription log | `04_data/structural_dyad_analysis_mapped.csv` | `scripts/01_text_features/02_compute_structural_conversation_features.py` |
+| 1c   | LLM annotation features | corrected transcripts + API access | `05_analysis_outputs/llm_annotation_output/` | `scripts/02_llm_annotation/03_annotate_turns_claude.py` |
+| 1d   | Poster multivariate model | semantic + structural + LLM + outcomes | `05_analysis_outputs/multivariate_output/` | `scripts/04_models/05_poster_multivariate_analysis.py` |
 | 1    | Convert to WAV     | Recording (any)    | `_wav/<stem>_16k.wav`     | ffmpeg          |
 | 2    | Transcribe + diarize | 16k mono WAV     | `outputs/<stem>/` (srt, json, …) | WhisperX (`run_whisperx.sh`) |
-| 3a   | Transfer manual labels → timestamps | manual `.txt` + WhisperX `.srt` | `04_data/labeled_turns.csv` | `02_scripts/03a_transfer_labels.py` |
-| 3    | Per-turn prosody   | `labeled_turns.csv` + WAV | `04_data/acoustic_turns.csv` | `02_scripts/03_acoustic_features.py` |
-| 4    | Vocal alignment (entrainment) | `acoustic_turns.csv` | `04_data/vocal_alignment_dyad.csv` | `02_scripts/04_vocal_alignment.py` |
-| 5    | Dissociation test  | turn-level + vocal CSVs | `05_analysis_outputs/dissociation_results.{csv,json}` | `02_scripts/05_dissociation_test.py` |
-| 6    | Publication/poster figures | analysis CSVs | `06_figures/` and plot PDFs/PNGs | `02_scripts/plot_*.py`, `02_scripts/poster_plots.py` |
-| 3b   | *(optional)* Diarization validation/scaling | `labeled_turns.csv` + WAV | `04_data/enroll_validation.csv` | `02_scripts/03b_enroll_diarize.py` |
+| 3a   | Transfer manual labels → timestamps | manual `.txt` + WhisperX `.srt` | `04_data/labeled_turns.csv` | `scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py` |
+| 3    | Per-turn prosody   | `labeled_turns.csv` + WAV | `04_data/acoustic_turns.csv` | `scripts/03_acoustic_alignment/08_extract_acoustic_features.py` |
+| 4    | Vocal alignment (entrainment) | `acoustic_turns.csv` | `04_data/vocal_alignment_dyad.csv` | `scripts/03_acoustic_alignment/09_compute_vocal_alignment.py` |
+| 5    | Dissociation test  | turn-level + vocal CSVs | `05_analysis_outputs/dissociation_results.{csv,json}` | `scripts/04_models/10_test_vocal_alignment_incremental_validity.py` |
+| 6    | Publication/poster figures | analysis CSVs | `06_figures/` and plot PDFs/PNGs | `scripts/05_figures/*.py` |
+| 3b   | *(optional)* Diarization validation/scaling | `labeled_turns.csv` + WAV | `04_data/enroll_validation.csv` | `scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py` |
 
 ---
 
@@ -108,9 +108,8 @@ pip install speechbrain torchaudio --break-system-packages
   words). Emits a per-turn `coverage` QC column (fraction of words timestamped).
 - **Run:**
   ```bash
-  cd 02_scripts
-  python 03a_transfer_labels.py            # all sessions
-  python 03a_transfer_labels.py --limit 1  # smoke-test one session
+  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py            # all sessions
+  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py --limit 1  # smoke-test one session
   ```
 
 ### Step 3 — Per-turn prosodic features
@@ -121,9 +120,10 @@ pip install speechbrain torchaudio --break-system-packages
   downstream so we capture contour coordination, not baseline pitch.
 - **Run (transfer mode = recommended, uses your manual labels):**
   ```bash
-  python 03_acoustic_features.py --turns-csv ../04_data/labeled_turns.csv \
-                                 --out ../04_data/acoustic_turns.csv
-  python 03_acoustic_features.py --dry-run --limit 1   # parse turns, skip audio
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py \
+      --turns-csv 04_data/labeled_turns.csv \
+      --out 04_data/acoustic_turns.csv
+  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py --dry-run --limit 1
   ```
 
 ### Step 4 — Vocal alignment (entrainment metrics)
@@ -135,7 +135,7 @@ pip install speechbrain torchaudio --break-system-packages
 - **Condition is kept, not averaged** (piper/cloudy stay separate rows).
 - **Run:**
   ```bash
-  python 04_vocal_alignment.py   # in: acoustic_turns.csv  out: vocal_alignment_dyad.csv
+  python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
   ```
 
 ### Step 5 — Dissociation test (the hypothesis)
@@ -152,7 +152,7 @@ pip install speechbrain torchaudio --break-system-packages
   per-condition outcomes exist).
 - **Run:**
   ```bash
-  python 05_dissociation_test.py --n-perm 5000 --seed 42
+  python scripts/04_models/10_test_vocal_alignment_incremental_validity.py --n-perm 5000 --seed 42
   ```
 
 ### Step 3b — *(optional)* Diarization validation / scaling
@@ -164,21 +164,21 @@ pip install speechbrain torchaudio --break-system-packages
 - Not a replacement for manual labels — a QC/scaling arm.
 - **Run:**
   ```bash
-  python 03b_enroll_diarize.py                 # validate, enroll on Q1
-  python 03b_enroll_diarize.py --self-test     # plumbing only (no torch/audio)
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --self-test
   ```
 
 ### Full run order
 
 ```bash
-cd 02_scripts
-python 03a_transfer_labels.py
-python 03_acoustic_features.py --turns-csv ../04_data/labeled_turns.csv \
-                               --out ../04_data/acoustic_turns.csv
-python 04_vocal_alignment.py
-python 05_dissociation_test.py
+python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py
+python scripts/03_acoustic_alignment/08_extract_acoustic_features.py \
+    --turns-csv 04_data/labeled_turns.csv \
+    --out 04_data/acoustic_turns.csv
+python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
+python scripts/04_models/10_test_vocal_alignment_incremental_validity.py
 # optional QC:
-python 03b_enroll_diarize.py
+python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
 ```
 
 ---
@@ -190,16 +190,16 @@ the repository root after the corrected transcript text files and required CSVs
 are in place.
 
 ```bash
-python 02_scripts/01_semantic.py
-python 02_scripts/02_extract_conversation_features.py
+python scripts/01_text_features/01_compute_semantic_sentiment_features.py
+python scripts/01_text_features/02_compute_structural_conversation_features.py
 
-# Requires ANTHROPIC_API_KEY. Use qwen_annotation.py instead with
+# Requires ANTHROPIC_API_KEY. Use 03b_annotate_turns_qwen.py instead with
 # OPENROUTER_API_KEY if you want the Qwen/OpenRouter comparison workflow.
-python 02_scripts/test_annotation.py
+python scripts/02_llm_annotation/03_annotate_turns_claude.py
 
-python 02_scripts/llm_regression.py
-python 02_scripts/poster_analysis_pipeline.py
-python 02_scripts/poster_plots.py
+python scripts/04_models/04_analyze_llm_features.py
+python scripts/04_models/05_poster_multivariate_analysis.py
+python scripts/05_figures/06_make_poster_plots.py
 ```
 
 Poster and figure helper scripts should be treated as downstream visualization
@@ -207,9 +207,9 @@ steps. They do not define the primary statistical test unless explicitly stated
 in their headers.
 
 ```bash
-python 02_scripts/plot_audio_alignment.py
-python 02_scripts/plot_highlow_compare.py
-python 02_scripts/plot_vocal_outcome_heatmap.py
+python scripts/05_figures/plot_audio_alignment.py
+python scripts/05_figures/plot_highlow_compare.py
+python scripts/05_figures/plot_vocal_outcome_heatmap.py
 ```
 
 ---
@@ -225,7 +225,7 @@ cvs_conversation/
 │   ├── outputs/         # per-file WhisperX outputs (srt, json, tsv, vtt, txt)
 │   ├── all_srt/         # manual .txt (corrected labels) + .srt per condition
 │   └── logs/            # per-file run logs
-├── 02_scripts/          # 01_semantic … 05_dissociation_test.py
+├── scripts/             # grouped replication scripts
 ├── 04_data/             # *.csv inputs/outputs (labeled_turns, acoustic_turns, …)
 └── 05_analysis_outputs/ # dissociation_results.{csv,json}, etc.
 ```

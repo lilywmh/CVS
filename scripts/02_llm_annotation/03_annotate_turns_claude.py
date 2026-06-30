@@ -1,12 +1,17 @@
 """
-Qwen Annotation Pipeline (for comparison with Claude)
-======================================================
-Same prompts and logic as test_annotation.py
-Only difference: uses Qwen API instead of Claude
+Full-Scale LLM Annotation Pipeline
+====================================
+Runs turn-level and conversation-level annotation across all dyads and conditions.
+Saves per-dyad turn CSVs + a collapsed dyad-level feature CSV for analysis.
 
+Usage:
+    python annotation_pipeline.py
+
+Outputs (in OUTPUT_DIR):
+    turns/          — one CSV per dyad-condition with all turn annotations
+    dyad_features.csv  — collapsed dyad-level features ready for regression
+    conversation_level.csv — engagement ratings per dyad-condition
 """
-# -*- coding: utf-8 -*-
-
 
 import os
 import re
@@ -16,26 +21,20 @@ import time
 from pathlib import Path
 import pandas as pd
 import numpy as np
-from openai import OpenAI
+from anthropic import Anthropic
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 PIPER_DIR  = str(PROJECT / '01_pipeline' / 'all_srt' / 'piper')
 CLOUDY_DIR = str(PROJECT / '01_pipeline' / 'all_srt' / 'cloudy')
-OUTPUT_DIR = str(PROJECT / '05_analysis_outputs' / 'qwen_annotation_output')
+OUTPUT_DIR = str(PROJECT / '05_analysis_outputs' / 'llm_annotation_output')
 TURNS_DIR  = os.path.join(OUTPUT_DIR, 'turns')
 os.makedirs(TURNS_DIR, exist_ok=True)
 
 BATCH_SIZE = 8
+client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-# Qwen API settings through the OpenAI-compatible OpenRouter endpoint.
-client = OpenAI(
-    api_key=os.environ.get("OPENROUTER_API_KEY"),
-    base_url="https://openrouter.ai/api/v1"
-)
-QWEN_MODEL = "qwen/qwen3.6-plus:free"
-
-# ─── Same question context and prompts as test_annotation.py ──────────────────
+# ─── QUESTION CONTEXT ─────────────────────────────────────────────────────────
 QUESTION_CONTEXT = {
     1: {
         "question": "What did you think about and how did you feel while watching?",
@@ -69,6 +68,7 @@ QUESTION_CONTEXT = {
     }
 }
 
+# ─── PROMPTS ──────────────────────────────────────────────────────────────────
 TURN_SYSTEM = """You are annotating a conversation transcript. Two people just watched a short animated film together and are answering discussion questions about it.
 
 For each numbered turn, classify TEN things:
@@ -80,8 +80,11 @@ For each numbered turn, classify TEN things:
 
 2. st (stance): "personal"=own opinion/feeling, "neutral"=no personal angle
 
-3. y (yeah_type): ONLY for turns predominantly yeah/right/true/uh-huh/mm-hm. Else "na".
-   "backchannel"=pure filler, "agreement"=affirms partner no new content, "elaborated"=yeah + new content after
+3. verbal_agreement: Does this turn express agreement with the partner?
+   "backchannel"=pure filler (yeah, mm-hm) with no clear agreement signal
+   "affirm"=explicitly agrees with partner, no new content
+   "elaborated"=agrees with partner + adds new content
+   "neutral"=no agreement expressed
 
 4. ot (on_topic): vs the question being answered. "yes"/"partial"/"no"
 
@@ -137,44 +140,14 @@ Rate the OVERALL conversation on engagement: how invested and active do both spe
 Respond ONLY as JSON — no markdown:
 {"engagement":"high"/"medium"/"low","reason":"one sentence","dominant_speaker":"00"/"01"/"balanced"}"""
 
-
-# ─── API call: the only intended difference from the Claude pipeline ──────────
-def call_qwen(system_prompt, user_content, max_tokens=2000):
-    
-    # Normalize punctuation before sending prompts to the model.
-    def clean(text):
-        return (text
-            .replace('\u201c', '"').replace('\u201d', '"')
-            .replace('\u2018', "'").replace('\u2019', "'")
-            .replace('\u2014', '-').replace('\u2013', '-')
-            .replace('\u2026', '...')
-        )
-    
-    system_prompt = clean(system_prompt)
-    user_content  = clean(user_content)
-
-    response = client.chat.completions.create(
-        model=QWEN_MODEL,
-        max_tokens=max_tokens,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_content}
-        ],
-        extra_body={"reasoning": {"enabled": False}}
-    )
-    return response.choices[0].message.content.strip()
-
-# ─── Remaining functions mirror the Claude pipeline, with API calls swapped ───
+# ─── PARSING ──────────────────────────────────────────────────────────────────
 def parse_transcript(filepath):
     turns = []
     curr_q = 0
     speaker_regex = re.compile(r"^(SPEAKER_\d+):\s*(.*)", re.IGNORECASE)
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
         for line in f:
-            line = line.strip()
-            line = line.replace('\u201c', '"').replace('\u201d', '"')
-            line = line.replace('\u2018', "'").replace('\u2019', "'")
-            line = line.replace('\u2014', '-').replace('\u2013', '-')
+            line = line.strip().replace('\u201c', '"').replace('\u201d', '"').replace('\u2018', "'").replace('\u2019', "'")
             if re.match(r"Question_\d+", line):
                 m = re.search(r"(\d+)", line)
                 if m: curr_q = int(m.group(1))
@@ -188,9 +161,8 @@ def parse_transcript(filepath):
                 })
     return turns
 
-
+# ─── TURN ANNOTATION ──────────────────────────────────────────────────────────
 def annotate_turns(turns, dyad_id, condition):
-    """Annotate turns using Qwen instead of Claude."""
     all_annotations = {}
     batches = [turns[i:i+BATCH_SIZE] for i in range(0, len(turns), BATCH_SIZE)]
 
@@ -198,81 +170,94 @@ def annotate_turns(turns, dyad_id, condition):
         offset = b_idx * BATCH_SIZE
         q_num  = batch[0]['question_num']
         q_info = QUESTION_CONTEXT.get(q_num, {
-            "question": "General discussion",
-            "expects": "general film discussion",
-            "depth_note": "standard",
-            "stance_note": "standard"
+            "question": "General discussion", "expects": "general film discussion",
+            "depth_note": "standard", "stance_note": "standard"
         })
-        prior = turns[max(0, offset-2):offset]
+        prior     = turns[max(0, offset-2):offset]
+        def _clean(text):
+            return text.encode('ascii', 'replace').decode('ascii')
 
-        # Build the same user content as the Claude pipeline.
-        context_header = (
-            f"Question {q_num}: {q_info['question']}\n"
-            f"Expects: {q_info['expects']}\n"
-            f"Depth note: {q_info['depth_note']}\n"
-            f"Stance note: {q_info['stance_note']}\n"
-        )
-        if prior:
-            context_header += "\n[Prior context]\n"
-            for p in prior:
-                context_header += f"  {p['speaker']}: {p['text']}\n"
-        context_header += "\n[Turns to annotate]\n"
-        for idx, t in enumerate(batch):
-            context_header += f"{offset + idx}. {t['speaker']}: {t['text']}\n"
+        prior_str = "\n".join([f"{t['speaker']}: {_clean(t['text'])}" for t in prior])
+        batch_str = "\n".join([
+            f"{offset+i}. [Q{t['question_num']}] {t['speaker']}: {_clean(t['text'])}"
+            for i, t in enumerate(batch)
+        ])
+        prompt = f"""Discussion question: "{q_info['question']}"
+Expected content: {q_info['expects']}
+Depth guide: {q_info['depth_note']}
+Stance guide: {q_info['stance_note']}
+
+Prior context:
+{prior_str if prior_str else 'None'}
+
+Turns to annotate:
+{batch_str}"""
 
         try:
-            raw = call_qwen(TURN_SYSTEM, context_header, max_tokens=2000)
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=BATCH_SIZE * 80,
+                system=TURN_SYSTEM,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            raw = response.content[0].text.strip()
             raw = re.sub(r'```json\s*', '', raw)
             raw = re.sub(r'```\s*', '', raw).strip()
-            parsed = json.loads(raw)
-            for item in parsed:
-                all_annotations[item['i']] = item
+            if '[' in raw and not raw.rstrip().endswith(']'):
+                last_brace = raw.rfind('}')
+                if last_brace != -1:
+                    raw = raw[:last_brace+1] + ']'
+            match = re.search(r'\[.*\]', raw, re.DOTALL)
+            if not match:
+                raise ValueError(f"No JSON array found")
+            results = json.loads(match.group())
+            for r in results:
+                all_annotations[r['i']] = r
         except Exception as e:
-            import traceback
             print(f"    Batch {b_idx} error: {e}")
-            traceback.print_exc() 
-            for idx in range(len(batch)):
-                all_annotations[offset + idx] = {
-                    'i': offset + idx,
-                    'd': 'surface', 'st': 'neutral', 'y': 'na',
-                    'ot': 'partial', 'q': False, 'sd': 'low',
-                    'ra': 'false', 's': 'neu', 'ep': 'mid', 'cv': 'neutral'
+            for i in range(len(batch)):
+                idx = offset + i
+                all_annotations[idx] = {
+                    "i": idx, "d": "surface", "st": "neutral", "y": "na",
+                    "ot": "yes", "q": False, "sd": "low", "ra": "true",
+                    "s": "neu", "ep": "mid", "cv": "neutral"
                 }
-        time.sleep(0.3)  # Qwen rate limit
+        time.sleep(0.1)
 
-    # Convert annotations to a tidy DataFrame.
     rows = []
     for i, t in enumerate(turns):
         ann = all_annotations.get(i, {})
         rows.append({
-            "dyad_id":        dyad_id,
-            "condition":      condition,
-            "turn_idx":       i,
-            "question_num":   t['question_num'],
-            "speaker":        t['speaker'],
-            "text":           t['text'],
-            "depth":          ann.get('d', 'surface'),
-            "stance":         ann.get('st', 'neutral'),
-            "yeah_type":      ann.get('y', 'na'),
-            "on_topic":       ann.get('ot', 'partial'),
-            "is_question":    ann.get('q', False),
-            "self_disclosure":ann.get('sd', 'low'),
-            "responsive":     ann.get('ra', 'false'),
-            "sentiment":      ann.get('s', 'neu'),
-            "epistemic":      ann.get('ep', 'mid'),
-            "convergence":    ann.get('cv', 'neutral'),
+            "dyad_id":         dyad_id,
+            "condition":       condition,
+            "turn_index":      i,
+            "question_num":    t['question_num'],
+            "speaker":         t['speaker'],
+            "text":            t['text'],
+            "depth":           ann.get("d",  "surface"),
+            "stance":          ann.get("st", "neutral"),
+            "verbal_agreement": ann.get("y",  "na"),
+            "on_topic":        ann.get("ot", "yes"),
+            "is_question":     ann.get("q",  False),
+            "self_disclosure": ann.get("sd", "low"),
+            "responsive":      ann.get("ra", "true"),
+            "sentiment":       ann.get("s",  "neu"),
+            "epistemic":       ann.get("ep", "mid"),
+            "convergence":     ann.get("cv", "neutral"),
         })
     return pd.DataFrame(rows)
 
-
+# ─── CONVERSATION ANNOTATION ──────────────────────────────────────────────────
 def annotate_conversation(turns, dyad_id, condition):
-    """Annotate conversation-level engagement using Qwen."""
-    full_text = "\n".join([
-        f"[Q{t['question_num']}] {t['speaker']}: {t['text']}"
-        for t in turns
-    ])
+    full_text = "\n".join([f"[Q{t['question_num']}] {t['speaker']}: {t['text']}" for t in turns])
     try:
-        raw = call_qwen(CONVERSATION_SYSTEM, full_text, max_tokens=150)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=150,
+            system=CONVERSATION_SYSTEM,
+            messages=[{"role": "user", "content": full_text}]
+        )
+        raw = response.content[0].text.strip()
         raw = re.sub(r'```json\s*', '', raw)
         raw = re.sub(r'```\s*', '', raw).strip()
         result = json.loads(raw)
@@ -284,14 +269,23 @@ def annotate_conversation(turns, dyad_id, condition):
     result["condition"] = condition
     return result
 
+# ─── COLLAPSE TO DYAD LEVEL ───────────────────────────────────────────────────
 
-# Same dyad-level collapse as the Claude pipeline.
 def collapse_to_dyad(df):
+    """
+    Aggregate turn-level annotations to dyad-condition level.
+    Produces one row per dyad-condition with feature rates and asymmetry scores.
+    """
     rows = []
+    if "yeah_type" in df.columns and "verbal_agreement" not in df.columns:
+        df = df.rename(columns={"yeah_type": "verbal_agreement"})
     df["is_question"] = df["is_question"].astype(bool)
+
     for (dyad_id, condition), grp in df.groupby(['dyad_id', 'condition']):
         total = len(grp)
         spk_ids = grp['speaker'].unique()
+
+        # ── Overall rates ──
         row = {
             "dyad_id":              dyad_id,
             "condition":            condition,
@@ -300,9 +294,9 @@ def collapse_to_dyad(df):
             "depth_interpret_rate": (grp['depth'] == 'interpretive').sum() / total,
             "depth_abstract_rate":  (grp['depth'] == 'abstract').sum() / total,
             "personal_stance_rate": (grp['stance'] == 'personal').sum() / total,
-            "yeah_backchannel_n":   (grp['yeah_type'] == 'backchannel').sum(),
-            "yeah_agreement_n":     (grp['yeah_type'] == 'agreement').sum(),
-            "yeah_elaborated_n":    (grp['yeah_type'] == 'elaborated').sum(),
+            "verbal_agreement_backchannel_n": (grp['verbal_agreement'] == 'backchannel').sum(),
+            "verbal_agreement_affirm_n":      (grp['verbal_agreement'] == 'affirm').sum(),
+            "verbal_agreement_elaborated_n":  (grp['verbal_agreement'] == 'elaborated').sum(),
             "on_topic_rate":        (grp['on_topic'] == 'yes').sum() / total,
             "off_topic_rate":       (grp['on_topic'] == 'no').sum() / total,
             "question_count":       grp['is_question'].sum(),
@@ -316,45 +310,48 @@ def collapse_to_dyad(df):
             "converge_rate":        (grp['convergence'] == 'converge').sum() / total,
             "diverge_rate":         (grp['convergence'] == 'diverge').sum() / total,
         }
+
+        # ── On-topic rate per question block ──
         for q in range(1, 6):
             block = grp[grp['question_num'] == q]
-            row[f"on_topic_q{q}"] = (
-                (block['on_topic'] == 'yes').sum() / len(block)
-                if len(block) > 0 else np.nan
-            )
+            if len(block) > 0:
+                row[f"on_topic_q{q}"] = (block['on_topic'] == 'yes').sum() / len(block)
+            else:
+                row[f"on_topic_q{q}"] = np.nan
+
+        # ── Per-speaker features + asymmetry ──
         if len(spk_ids) == 2:
             spk_a, spk_b = sorted(spk_ids)
             for feat, col in [
-                ("depth_deep", lambda s: s['depth'].isin(['interpretive','abstract'])),
-                ("personal",   lambda s: s['stance'] == 'personal'),
-                ("questions",  lambda s: s['is_question']),
-                ("disclosure", lambda s: s['self_disclosure'].isin(['high','mid'])),
-                ("responsive", lambda s: s['responsive'] == 'true'),
-                ("hedging",    lambda s: s['epistemic'] == 'low'),
-                ("converge",   lambda s: s['convergence'] == 'converge'),
+                ("depth_deep",    lambda s: s['depth'].isin(['interpretive','abstract'])),
+                ("personal",      lambda s: s['stance'] == 'personal'),
+                ("questions",     lambda s: s['is_question']),
+                ("disclosure",    lambda s: s['self_disclosure'].isin(['high','mid'])),
+                ("responsive",    lambda s: s['responsive'] == 'true'),
+                ("hedging",       lambda s: s['epistemic'] == 'low'),
+                ("converge",      lambda s: s['convergence'] == 'converge'),
             ]:
                 sub_a = grp[grp['speaker'] == spk_a]
                 sub_b = grp[grp['speaker'] == spk_b]
                 rate_a = col(sub_a).sum() / max(len(sub_a), 1)
                 rate_b = col(sub_b).sum() / max(len(sub_b), 1)
-                row[f"{feat}_mean"] = (rate_a + rate_b) / 2
-                row[f"{feat}_asym"] = abs(rate_a - rate_b)
-            row["turn_asym"] = abs(
-                len(grp[grp['speaker'] == spk_a]) -
-                len(grp[grp['speaker'] == spk_b])
-            ) / total
+                row[f"{feat}_mean"]  = (rate_a + rate_b) / 2
+                row[f"{feat}_asym"]  = abs(rate_a - rate_b)
+
+            # Turn count asymmetry
+            row["turn_asym"] = abs(len(grp[grp['speaker'] == spk_a]) - len(grp[grp['speaker'] == spk_b])) / total
+
         rows.append(row)
+
     return pd.DataFrame(rows)
 
-
-# ─── MAIN ─────────────────────────────────────────────────────────────────────
+# ─── MAIN PIPELINE ────────────────────────────────────────────────────────────
 def run():
- 
     all_turns = []
     all_conv  = []
 
+    # Find all transcript files
     files = []
-    files = files[:1] 
     for directory, condition in [(PIPER_DIR, 'piper'), (CLOUDY_DIR, 'cloudy')]:
         if not os.path.exists(directory):
             print(f"Warning: {directory} not found, skipping")
@@ -369,6 +366,7 @@ def run():
         id_match = re.search(r"(dyad\d+_\d+)", filename)
         dyad_id  = id_match.group(1) if id_match else filename.replace('.txt', '')
 
+        # Skip if already done
         cache_path = os.path.join(TURNS_DIR, f"{dyad_id}_{condition}.csv")
         if os.path.exists(cache_path):
             print(f"  Skipping {dyad_id} {condition} (already annotated)")
@@ -382,32 +380,40 @@ def run():
             print(f"    No turns found, skipping")
             continue
 
+        # Turn-level annotation
         df_turns = annotate_turns(turns, dyad_id, condition)
         df_turns.to_csv(cache_path, index=False)
         all_turns.append(df_turns)
 
+        # Conversation-level annotation
         conv = annotate_conversation(turns, dyad_id, condition)
         all_conv.append(conv)
 
         print(f"    Done: {len(turns)} turns annotated")
-        time.sleep(0.3)
+        time.sleep(0.2)
 
+    # Save all turns
     if all_turns:
         df_all_turns = pd.concat(all_turns, ignore_index=True)
         df_all_turns.to_csv(os.path.join(OUTPUT_DIR, 'all_turns.csv'), index=False)
         print(f"\nAll turns saved: {len(df_all_turns)} total")
 
+        # Collapse to dyad level
         df_dyad = collapse_to_dyad(df_all_turns)
+
+        # Add pair_id for merging with outcomes
         df_dyad['pair_id'] = df_dyad['dyad_id'].str.extract(r'dyad(\d+)').astype(int)
         df_dyad.to_csv(os.path.join(OUTPUT_DIR, 'dyad_features.csv'), index=False)
-        print(f"Dyad features saved: {len(df_dyad)} rows")
+        print(f"Dyad features saved: {len(df_dyad)} rows, {len(df_dyad.columns)} features")
 
+    # Save conversation-level ratings
     if all_conv:
         df_conv = pd.DataFrame(all_conv)
         df_conv.to_csv(os.path.join(OUTPUT_DIR, 'conversation_level.csv'), index=False)
         print(f"Conversation ratings saved: {len(df_conv)} rows")
 
     print(f"\nAll outputs in '{OUTPUT_DIR}/'")
+    print("Next step: merge dyad_features.csv with your outcomes.csv using pair_id")
 
 if __name__ == "__main__":
     run()

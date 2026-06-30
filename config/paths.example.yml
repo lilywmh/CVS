@@ -1,0 +1,15 @@
+# Example path configuration for a clean replication checkout.
+# Current scripts still use repository-relative defaults, but this file documents
+# the intended locations for future config-driven execution.
+
+transcripts_root: data/raw/all_srt
+whisperx_outputs: data/interim/whisperx_outputs
+wav_dir: data/interim/wav_16k
+derived_data: data/derived
+private_data: data/private
+analysis_outputs: outputs
+figures: figures
+
+transcription_log: data/derived/Discussion Transcription Log - Sheet1.csv
+outcomes: data/derived/outcomes.csv
+participant_master: data/private/master_sheet_one_row_per_participant.csv

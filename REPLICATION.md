@@ -43,17 +43,17 @@ and may contain sensitive participant material.
 
 ## 3. Canonical Pipeline
 
-Use the numbered scripts in `02_scripts/`.
+Use the grouped numbered scripts in `scripts/`.
 
-1. `01_semantic.py`: semantic similarity and sentiment alignment.
-2. `02_extract_conversation_features.py`: structural conversation features.
-3. `test_annotation.py`: LLM turn/conversation annotation, if API access is available.
-4. `poster_analysis_pipeline.py`: poster-oriented multivariate analysis.
-5. `03a_transfer_labels.py`: align corrected speaker labels to WhisperX timestamps.
-6. `03_acoustic_features.py`: extract acoustic/prosodic features.
-7. `04_vocal_alignment.py`: compute vocal entrainment metrics.
-8. `05_dissociation_test.py`: test whether vocal alignment adds incremental variance.
-9. Plot scripts: generate figures after tables are produced.
+1. `scripts/01_text_features/01_compute_semantic_sentiment_features.py`: semantic similarity and sentiment alignment.
+2. `scripts/01_text_features/02_compute_structural_conversation_features.py`: structural conversation features.
+3. `scripts/02_llm_annotation/03_annotate_turns_claude.py`: LLM turn/conversation annotation, if API access is available.
+4. `scripts/04_models/05_poster_multivariate_analysis.py`: poster-oriented multivariate analysis.
+5. `scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py`: align corrected speaker labels to WhisperX timestamps.
+6. `scripts/03_acoustic_alignment/08_extract_acoustic_features.py`: extract acoustic/prosodic features.
+7. `scripts/03_acoustic_alignment/09_compute_vocal_alignment.py`: compute vocal entrainment metrics.
+8. `scripts/04_models/10_test_vocal_alignment_incremental_validity.py`: test whether vocal alignment adds incremental variance.
+9. `scripts/05_figures/`: generate figures after tables are produced.
 
 ## 4. Methodological Cautions
 

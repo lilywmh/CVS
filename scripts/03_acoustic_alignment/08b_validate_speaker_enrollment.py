@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-03b_enroll_diarize.py
-=====================
+08b_validate_speaker_enrollment.py
+==================================
 Enrollment-based speaker verification / supervised diarization.
 
 WHAT THIS IS (your idea, formalised)
@@ -28,7 +28,7 @@ Two intended uses (NOT a replacement for your manual labels):
 
 Inputs
 ------
-  labeled_turns.csv  (from 03a_transfer_labels.py: manual speaker + timestamps)
+  labeled_turns.csv  (from 07_align_manual_labels_to_whisperx.py)
   the 16 kHz mono WAVs
 
 Outputs
@@ -57,10 +57,10 @@ Caveats baked into the design
 
 Usage
 -----
-  python 03b_enroll_diarize.py                         # validate, enroll on Q1
-  python 03b_enroll_diarize.py --enroll-question 1 --limit 2
-  python 03b_enroll_diarize.py --mode scale --turns-csv new_dyads_turns.csv
-  python 03b_enroll_diarize.py --self-test            # plumbing only, no audio
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --enroll-question 1 --limit 2
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --mode scale --turns-csv new_dyads_turns.csv
+  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --self-test
 """
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 
 CONFIG = {
     "turns_csv": PROJECT / "04_data" / "labeled_turns.csv",

@@ -8,7 +8,7 @@ import seaborn as sns
 from scipy import stats
 
 # ─── PATHS ────────────────────────────────────────────────────────────────────
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 SEMANTIC_PATH   = PROJECT / '04_data' / 'scientific_dyad_analysis_results.csv'
 STRUCTURAL_PATH = PROJECT / '04_data' / 'structural_dyad_analysis_mapped.csv'
 OUTCOMES_PATH   = PROJECT / '04_data' / 'outcomes.csv'

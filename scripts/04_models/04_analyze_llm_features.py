@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ─── CONFIGURATION ────────────────────────────────────────────────────────────
-PROJECT = Path(__file__).resolve().parent.parent
+PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 FEATURES_PATH = PROJECT / '05_analysis_outputs' / 'llm_annotation_output' / 'dyad_features.csv'
 OUTCOMES_PATH = PROJECT / '04_data' / 'outcomes.csv'
 OUTPUT_DIR    = PROJECT / '05_analysis_outputs' / 'llm_regression_output'
