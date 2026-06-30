@@ -76,4 +76,4 @@ python scripts/05_figures/plot_vocal_outcome_heatmap.py
 ```
 
 Some scripts require raw audio, restricted transcript data, or API access. See
-`../PIPELINE.md` and `../REPLICATION.md` for input placement and caveats.
+`../PIPELINE.md` and `../data/README.md` for input placement and caveats.
