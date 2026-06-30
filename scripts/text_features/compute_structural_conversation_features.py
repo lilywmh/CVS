@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 
 """
-02_compute_structural_conversation_features.py
+compute_structural_conversation_features.py
 ===================================
 Extract structural conversation features from corrected dyadic transcripts.
 

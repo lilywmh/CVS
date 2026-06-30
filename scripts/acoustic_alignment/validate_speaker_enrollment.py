@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-08b_validate_speaker_enrollment.py
+validate_speaker_enrollment.py
 ==================================
 Enrollment-based speaker verification / supervised diarization.
 
@@ -28,7 +28,7 @@ Two intended uses (NOT a replacement for your manual labels):
 
 Inputs
 ------
-  labeled_turns.csv  (from 07_align_manual_labels_to_whisperx.py)
+  labeled_turns.csv  (from align_manual_labels_to_whisperx.py)
   the 16 kHz mono WAVs
 
 Outputs
@@ -57,10 +57,10 @@ Caveats baked into the design
 
 Usage
 -----
-  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
-  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --enroll-question 1 --limit 2
-  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --mode scale --turns-csv new_dyads_turns.csv
-  python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py --self-test
+  python scripts/acoustic_alignment/validate_speaker_enrollment.py
+  python scripts/acoustic_alignment/validate_speaker_enrollment.py --enroll-question 1 --limit 2
+  python scripts/acoustic_alignment/validate_speaker_enrollment.py --mode scale --turns-csv new_dyads_turns.csv
+  python scripts/acoustic_alignment/validate_speaker_enrollment.py --self-test
 """
 from __future__ import annotations
 

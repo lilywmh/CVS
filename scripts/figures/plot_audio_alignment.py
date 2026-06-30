@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-12_plot_audio_alignment.py
+plot_audio_alignment.py
 ==========================
 Illustrative audio-visualisation figures for the vocal-alignment story.
 

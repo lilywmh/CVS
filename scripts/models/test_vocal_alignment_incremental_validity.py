@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-10_test_vocal_alignment_incremental_validity.py
+test_vocal_alignment_incremental_validity.py
 ===============================================
 The core question of the project (stated ASSOCIATIONALLY — this is a
 cross-sectional correlational design, so it cannot establish causation,
@@ -50,7 +50,7 @@ outcome, while turn-level does the reverse) is reported descriptively if present
 Inputs
 ------
   dyad_level_dataset.csv   turn-level features + outcomes (one row / pair_id)
-  vocal_alignment_dyad.csv from 09_compute_vocal_alignment.py (pair_id x condition)
+  vocal_alignment_dyad.csv from compute_vocal_alignment.py (pair_id x condition)
 
 Condition handling: outcomes here are dyad-level, so the vocal-alignment block is
 aggregated to pair_id (mean across piper/cloudy) for the primary test, and a
@@ -64,9 +64,9 @@ Outputs
 
 Usage
 -----
-  python scripts/04_models/10_test_vocal_alignment_incremental_validity.py
-  python scripts/04_models/10_test_vocal_alignment_incremental_validity.py --vocal 04_data/vocal_alignment_dyad.csv
-  python scripts/04_models/10_test_vocal_alignment_incremental_validity.py --n-perm 10000 --seed 42
+  python scripts/models/test_vocal_alignment_incremental_validity.py
+  python scripts/models/test_vocal_alignment_incremental_validity.py --vocal 04_data/vocal_alignment_dyad.csv
+  python scripts/models/test_vocal_alignment_incremental_validity.py --n-perm 10000 --seed 42
 """
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ CONFIG = {
     "out_csv": PROJECT / "05_analysis_outputs" / "dissociation_results.csv",
     "out_json": PROJECT / "05_analysis_outputs" / "dissociation_results.json",
     # PRIMARY outcome = "connection quality" composite (PC1 of these 3), matching
-    # 05_poster_multivariate_analysis.py. solo is excluded from the composite (separate
+    # poster_multivariate_analysis.py. solo is excluded from the composite (separate
     # construct) and reported only as a secondary outcome.
     "composite_cols": [
         "dyad_partner_eval_mean", "dyad_shared_reality_mean", "dyad_enjoyment_mean",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-07_align_manual_labels_to_whisperx.py
+align_manual_labels_to_whisperx.py
 =====================================
 Put your MANUAL (corrected) speaker labels onto WhisperX WORD TIMESTAMPS,
 without re-running pyannote diarization.
@@ -22,7 +22,7 @@ This is forced alignment by text, and it is non-destructive: your .txt files
 are read-only inputs and are never modified.
 
 Output: labeled_turns.csv with schema compatible with
-08_extract_acoustic_features.py
+extract_acoustic_features.py
   dyad_id, pair_id, condition, Order, turn_idx, speaker, role,
   t_start, t_end, dur, n_words, text, coverage
 
@@ -31,14 +31,14 @@ alignment (a per-turn QC flag; low coverage -> treat that turn's prosody
 cautiously).
 
 Then run acoustic extraction in transfer mode:
-  python scripts/03_acoustic_alignment/08_extract_acoustic_features.py \
+  python scripts/acoustic_alignment/extract_acoustic_features.py \
       --turns-csv 04_data/labeled_turns.csv \
       --out 04_data/acoustic_turns.csv
 
 Dependencies: numpy, pandas (stdlib difflib for alignment)
 Usage:
-  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py
-  python scripts/03_acoustic_alignment/07_align_manual_labels_to_whisperx.py --limit 1
+  python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py
+  python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py --limit 1
 """
 from __future__ import annotations
 

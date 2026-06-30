@@ -1,7 +1,7 @@
 """
 Qwen Annotation Pipeline (for comparison with Claude)
 ======================================================
-Same prompts and logic as 03_annotate_turns_claude.py
+Same prompts and logic as annotate_turns_claude.py
 Only difference: uses Qwen API instead of Claude
 
 """
@@ -35,7 +35,7 @@ client = OpenAI(
 )
 QWEN_MODEL = "qwen/qwen3.6-plus:free"
 
-# ─── Same question context and prompts as 03_annotate_turns_claude.py ──────────────────
+# ─── Same question context and prompts as annotate_turns_claude.py ──────────────────
 QUESTION_CONTEXT = {
     1: {
         "question": "What did you think about and how did you feel while watching?",

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-11_build_covariates.py
+build_covariates.py
 ======================
 Build a DYAD-LEVEL covariate table from the participant master sheet, for use
 as controls / exploratory moderators in
-10_test_vocal_alignment_incremental_validity.py.
+test_vocal_alignment_incremental_validity.py.
 
 SOLID (use directly):
   - age           : 2026 - birth-year (Q18); dyad mean + within-dyad difference
@@ -25,7 +25,7 @@ absolute difference, in case dissimilarity matters).
 Output: 04_data/covariates_dyad.csv (one row per pair_id)
 
 Usage:
-  python scripts/04_models/11_build_covariates.py --master /path/to/master.csv
+  python scripts/models/build_covariates.py --master /path/to/master.csv
 
 If --master is omitted, the script looks for common private/master-sheet names
 under data/private, data/raw, and 04_data.
@@ -199,7 +199,7 @@ def parse_args():
         raise SystemExit(
             "No participant master sheet was provided or found.\n\n"
             "Run with:\n"
-            "  python scripts/04_models/11_build_covariates.py --master /path/to/master.csv\n\n"
+            "  python scripts/models/build_covariates.py --master /path/to/master.csv\n\n"
             "Or place one of these files in the repository:\n"
             f"{candidates}\n\n"
             "Expected columns include pair_id, role, Q18, Q23, and the scale item columns."

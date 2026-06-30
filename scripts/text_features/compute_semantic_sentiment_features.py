@@ -11,7 +11,7 @@ from sentence_transformers import SentenceTransformer, util
 from transformers import pipeline, AutoModelForSequenceClassification, AutoTokenizer
 
 """
-01_compute_semantic_sentiment_features.py
+compute_semantic_sentiment_features.py
 ==============
 Compute semantic and sentiment-alignment features from corrected dyadic
 conversation transcripts.

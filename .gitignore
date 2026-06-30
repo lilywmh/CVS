@@ -12,20 +12,21 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Clean replication layout
-data/raw/
-data/interim/
-data/private/
-outputs/
-figures/
+/data/raw/
+/data/interim/
+/data/private/
+/outputs/
+/figures/
 
 # Legacy local-only folders kept during the transition to the cleaner layout
 02_scripts/
 03_notebooks/
 
 # Heavy or generated analysis artifacts
-04_data/caches/
-05_analysis_outputs/
-06_figures/
+/04_data/
+/05_analysis_outputs/
+/06_figures/
+/07_writeups/
 
 # macOS
 .DS_Store

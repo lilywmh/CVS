@@ -8,7 +8,7 @@ import statsmodels.api as sm
 from statsmodels.stats.multitest import multipletests
 
 # ─── CONFIGURATION ────────────────────────────────────────────────────────────
-PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+PROJECT = Path(__file__).resolve().parents[3]  # cvs_conversation/
 SEMANTIC_PATH   = PROJECT / '04_data' / 'scientific_dyad_analysis_results.csv'
 STRUCTURAL_PATH = PROJECT / '04_data' / 'structural_dyad_analysis_mapped.csv'
 OUTCOMES_PATH   = PROJECT / '04_data' / 'outcomes.csv'

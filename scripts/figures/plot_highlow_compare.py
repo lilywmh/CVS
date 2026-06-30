@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-13_plot_highlow_compare.py
+plot_highlow_compare.py
 ==========================
 ILLUSTRATIVE comparison: intensity contour at turn transitions for a HIGH-
 connection vs a LOW-connection dyad. Exemplars selected by the connection

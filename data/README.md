@@ -18,7 +18,7 @@ restricted.
 | File | Current legacy path | Used by | Share status |
 | --- | --- | --- | --- |
 | Corrected transcripts | `01_pipeline/all_srt/{piper,cloudy}/*.txt` | text, LLM, label-transfer scripts | Restricted unless de-identified |
-| WhisperX SRTs | `01_pipeline/outputs/<session>/*.srt` | `07_align_manual_labels_to_whisperx.py` | Restricted/intermediate |
+| WhisperX SRTs | `01_pipeline/outputs/<session>/*.srt` | `align_manual_labels_to_whisperx.py` | Restricted/intermediate |
 | 16 kHz WAV files | `01_pipeline/_wav/*_16k.wav` | acoustic scripts | Restricted |
 | Transcription log | `04_data/Discussion Transcription Log - Sheet1.csv` | role mapping | Check for identifiers before sharing |
 | Outcomes | `04_data/outcomes.csv` | modeling scripts | Share if de-identified |

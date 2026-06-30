@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-09_compute_vocal_alignment.py
+compute_vocal_alignment.py
 =============================
 Turn-adjacent vocal entrainment metrics for the CVS study.
 
-Consumes the per-turn prosody table from 08_extract_acoustic_features.py
+Consumes the per-turn prosody table from extract_acoustic_features.py
 (acoustic_turns.csv) and produces dyad-level vocal-alignment features
 (vocal_alignment_dyad.csv) keyed by pair_id + condition.
 
@@ -38,11 +38,11 @@ Output: one row per (pair_id, condition) with columns like
 
 NOTE on condition: piper/cloudy are kept as SEPARATE rows (condition is an
 experimental manipulation; do NOT average it away).
-10_test_vocal_alignment_incremental_validity.py enters condition as a covariate.
+test_vocal_alignment_incremental_validity.py enters condition as a covariate.
 
 Usage:
-  python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
-  python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py --in 04_data/acoustic_turns.csv --out ...
+  python scripts/acoustic_alignment/compute_vocal_alignment.py
+  python scripts/acoustic_alignment/compute_vocal_alignment.py --in 04_data/acoustic_turns.csv --out ...
 """
 from __future__ import annotations
 
