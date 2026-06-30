@@ -43,12 +43,6 @@ turn-adjacent entrainment rather than simultaneous speaker separation.
 | 09 Vocal alignment | `python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py` | `04_data/vocal_alignment_dyad.csv` |
 | 10 Incremental-validity model | `python scripts/04_models/10_test_vocal_alignment_incremental_validity.py --n-perm 5000 --seed 42` | `05_analysis_outputs/dissociation_results.csv` |
 
-Optional speaker-enrollment validation:
-
-```bash
-python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
-```
-
 Optional covariate construction:
 
 ```bash
@@ -58,11 +52,25 @@ python scripts/04_models/11_build_covariates.py \
 
 ## Figure Scripts
 
-```bash
-python scripts/05_figures/plot_audio_alignment.py
-python scripts/05_figures/plot_highlow_compare.py
-python scripts/05_figures/plot_vocal_outcome_heatmap.py
-```
+| Step | Command | Purpose |
+| --- | --- | --- |
+| 12 | `python scripts/05_figures/12_plot_audio_alignment.py` | Vocal-alignment illustration plots |
+| 13 | `python scripts/05_figures/13_plot_highlow_compare.py` | High- vs low-connection exemplar comparison plots |
+| 14 | `python scripts/05_figures/14_plot_vocal_outcome_heatmap.py` | Exploratory heatmap of vocal metrics vs outcomes |
 
 These are downstream visualization steps and should be interpreted relative to
 the model outputs they consume.
+
+## Optional and Legacy Scripts
+
+Optional speaker-enrollment validation:
+
+```bash
+python scripts/03_acoustic_alignment/08b_validate_speaker_enrollment.py
+```
+
+Legacy comparison analysis:
+
+```bash
+python scripts/04_models/legacy/legacy_dyad_analysis.py
+```

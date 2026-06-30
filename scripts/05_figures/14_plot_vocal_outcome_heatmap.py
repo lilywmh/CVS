@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-plot_vocal_outcome_heatmap.py
-=============================
+14_plot_vocal_outcome_heatmap.py
+================================
 Exploratory heatmap: correlation of each vocal-alignment metric with each
 connection outcome (N=24 dyads). Red = positive, blue = negative, * = p<.05
 (uncorrected, exploratory). Also writes the underlying numbers as a CSV.

@@ -76,6 +76,9 @@ python scripts/03_acoustic_alignment/08_extract_acoustic_features.py \
     --out 04_data/acoustic_turns.csv
 python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
 python scripts/04_models/10_test_vocal_alignment_incremental_validity.py
+python scripts/05_figures/12_plot_audio_alignment.py
+python scripts/05_figures/13_plot_highlow_compare.py
+python scripts/05_figures/14_plot_vocal_outcome_heatmap.py
 ```
 
 ## Outputs

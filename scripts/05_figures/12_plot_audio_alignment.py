@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-plot_audio_alignment.py
-=======================
+12_plot_audio_alignment.py
+==========================
 Illustrative audio-visualisation figures for the vocal-alignment story.
 
 Fig 1 (example): for one dyad segment, waveform + intensity(dB) + pitch(f0)

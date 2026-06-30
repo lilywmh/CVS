@@ -42,17 +42,17 @@ export OPENROUTER_API_KEY="..."
 | 10 | `04_models/10_test_vocal_alignment_incremental_validity.py` | Pre-specified incremental/discriminant validity tests for vocal alignment | `05_analysis_outputs/dissociation_results.csv` and `.json` |
 | 11 | `04_models/11_build_covariates.py` | Optional dyad-level covariates from participant master sheet | `04_data/covariates_dyad.csv` |
 
-`04_models/legacy_dyad_analysis.py` is retained for comparison with earlier
-analysis code; it is not the preferred replication entry point.
+`04_models/legacy/legacy_dyad_analysis.py` is retained for comparison with
+earlier analysis code; it is not the preferred replication entry point.
 
 ## 05 Figures
 
-| Script | Purpose |
-| --- | --- |
-| `05_figures/06_make_poster_plots.py` | Compact poster plots from semantic/structural features |
-| `05_figures/plot_audio_alignment.py` | Vocal-alignment illustration plots |
-| `05_figures/plot_highlow_compare.py` | High- vs low-connection exemplar comparison plots |
-| `05_figures/plot_vocal_outcome_heatmap.py` | Exploratory heatmap of vocal metrics vs outcomes |
+| Step | Script | Purpose |
+| --- | --- | --- |
+| 06 | `05_figures/06_make_poster_plots.py` | Compact poster plots from semantic/structural features |
+| 12 | `05_figures/12_plot_audio_alignment.py` | Vocal-alignment illustration plots |
+| 13 | `05_figures/13_plot_highlow_compare.py` | High- vs low-connection exemplar comparison plots |
+| 14 | `05_figures/14_plot_vocal_outcome_heatmap.py` | Exploratory heatmap of vocal metrics vs outcomes |
 
 ## Suggested Run Order
 
@@ -70,9 +70,9 @@ python scripts/03_acoustic_alignment/09_compute_vocal_alignment.py
 python scripts/04_models/10_test_vocal_alignment_incremental_validity.py
 
 python scripts/05_figures/06_make_poster_plots.py
-python scripts/05_figures/plot_audio_alignment.py
-python scripts/05_figures/plot_highlow_compare.py
-python scripts/05_figures/plot_vocal_outcome_heatmap.py
+python scripts/05_figures/12_plot_audio_alignment.py
+python scripts/05_figures/13_plot_highlow_compare.py
+python scripts/05_figures/14_plot_vocal_outcome_heatmap.py
 ```
 
 Some scripts require raw audio, restricted transcript data, or API access. See
