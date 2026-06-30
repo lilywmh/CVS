@@ -141,9 +141,9 @@ def fig_example():
                loc="upper right", fontsize=8, framealpha=0.9)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"audio_alignment_example.{ext}", dpi=150,
+        fig.savefig(FIG / f"vocal_handoff_alignment_example.{ext}", dpi=150,
                     bbox_inches="tight")
-    print("Wrote", FIG / "audio_alignment_example.png")
+    print("Wrote", FIG / "vocal_handoff_alignment_example.png")
 
 
 # ---------- Figure 2: dataset-level offset->onset scatter ----------
@@ -178,9 +178,9 @@ def fig_scatter():
     ax.legend(loc="upper left", fontsize=9)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"intensity_edge_scatter.{ext}", dpi=150,
+        fig.savefig(FIG / f"vocal_handoff_intensity_scatter.{ext}", dpi=150,
                     bbox_inches="tight")
-    print("Wrote", FIG / "intensity_edge_scatter.png", f"| r={r:+.2f} p={p:.2g}")
+    print("Wrote", FIG / "vocal_handoff_intensity_scatter.png", f"| r={r:+.2f} p={p:.2g}")
 
 
 if __name__ == "__main__":

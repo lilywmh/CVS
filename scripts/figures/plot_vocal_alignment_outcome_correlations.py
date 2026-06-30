@@ -57,7 +57,7 @@ for i, m in enumerate(va):
 
 # save numbers
 out = pd.DataFrame(R, index=va, columns=[LABELS[o] for o in OUTC]).round(3)
-out.to_csv(DATA / "vocal_outcome_correlations.csv")
+out.to_csv(DATA / "vocal_alignment_outcome_correlations.csv")
 
 # nicer row labels: va_int_edge_synchrony -> int · edge · synchrony
 def pretty(m):
@@ -88,8 +88,8 @@ ax.set_title("Vocal alignment × connection (exploratory, N=24)\n"
 fig.tight_layout()
 FIG.mkdir(exist_ok=True)
 for ext in ("png", "pdf"):
-    fig.savefig(FIG / f"vocal_outcome_heatmap.{ext}", dpi=150, bbox_inches="tight")
+    fig.savefig(FIG / f"vocal_alignment_outcome_correlations.{ext}", dpi=150, bbox_inches="tight")
 print("Wrote:")
-print(" ", FIG / "vocal_outcome_heatmap.png")
-print(" ", FIG / "vocal_outcome_heatmap.pdf")
-print(" ", DATA / "vocal_outcome_correlations.csv")
+print(" ", FIG / "vocal_alignment_outcome_correlations.png")
+print(" ", FIG / "vocal_alignment_outcome_correlations.pdf")
+print(" ", DATA / "vocal_alignment_outcome_correlations.csv")

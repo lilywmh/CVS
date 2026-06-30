@@ -142,8 +142,8 @@ def scatter_compare():
                  "(illustrative; all of each dyad's switches)", fontsize=11)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"highlow_intensity_scatter.{ext}", dpi=150, bbox_inches="tight")
-    print("Wrote", FIG / "highlow_intensity_scatter.png")
+        fig.savefig(FIG / f"high_low_connection_intensity_scatter.{ext}", dpi=150, bbox_inches="tight")
+    print("Wrote", FIG / "high_low_connection_intensity_scatter.png")
 
 
 def handoffs_zoom(maxh=10, W=1.0, gap=0.5):
@@ -203,8 +203,8 @@ def handoffs_zoom(maxh=10, W=1.0, gap=0.5):
                    borderaxespad=0.3)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"highlow_handoffs_zoom.{ext}", dpi=150, bbox_inches="tight")
-    print("Wrote", FIG / "highlow_handoffs_zoom.png")
+        fig.savefig(FIG / f"high_low_connection_handoff_zoom.{ext}", dpi=150, bbox_inches="tight")
+    print("Wrote", FIG / "high_low_connection_handoff_zoom.png")
 
 
 def main():
@@ -225,8 +225,8 @@ def main():
                loc="upper right", fontsize=8)
     fig.tight_layout()
     for ext in ("png", "pdf"):
-        fig.savefig(FIG / f"highlow_intensity_compare.{ext}", dpi=150, bbox_inches="tight")
-    print("Wrote", FIG / "highlow_intensity_compare.png")
+        fig.savefig(FIG / f"high_low_connection_intensity_comparison.{ext}", dpi=150, bbox_inches="tight")
+    print("Wrote", FIG / "high_low_connection_intensity_comparison.png")
     scatter_compare()
     handoffs_zoom()
 

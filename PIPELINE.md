@@ -29,7 +29,7 @@ These data are private and intentionally excluded from Git.
 | 3 | `python scripts/llm_annotation/annotate_turns_claude.py` | `05_analysis_outputs/llm_annotation_output/` |
 | 4 | `python scripts/models/analyze_llm_features.py` | `05_analysis_outputs/llm_regression_output/` |
 | 5 | `python scripts/models/analyze_multivariate_connection_models.py` | `05_analysis_outputs/multivariate_output/` |
-| 6 | `python scripts/figures/plot_dyad_feature_outcome_associations.py` | `06_figures/` |
+| 6 | `python scripts/figures/plot_dyad_feature_outcome_associations.py` | `05_analysis_outputs/dyad_feature_outcome_figures/` |
 
 Use `scripts/llm_annotation/annotate_turns_qwen.py` for the optional
 Qwen/OpenRouter annotation workflow.
@@ -45,9 +45,9 @@ turn-adjacent entrainment rather than simultaneous speaker separation.
 | 2 | `python scripts/acoustic_alignment/extract_acoustic_features.py --turns-csv 04_data/labeled_turns.csv --out 04_data/acoustic_turns.csv` | `04_data/acoustic_turns.csv` |
 | 3 | `python scripts/acoustic_alignment/compute_vocal_alignment.py` | `04_data/vocal_alignment_dyad.csv` |
 | 4 | `python scripts/models/test_vocal_alignment_incremental_validity.py --n-perm 5000 --seed 42` | `05_analysis_outputs/dissociation_results.csv` |
-| 5 | `python scripts/figures/plot_vocal_handoff_alignment.py` | vocal-alignment illustration figures |
-| 6 | `python scripts/figures/compare_high_low_connection_handoffs.py` | high/low connection comparison figures |
-| 7 | `python scripts/figures/plot_vocal_alignment_outcome_correlations.py` | exploratory vocal-outcome heatmap |
+| 5 | `python scripts/figures/plot_vocal_handoff_alignment.py` | `06_figures/vocal_handoff_alignment_example.*`, `06_figures/vocal_handoff_intensity_scatter.*` |
+| 6 | `python scripts/figures/compare_high_low_connection_handoffs.py` | `06_figures/high_low_connection_*.{png,pdf}` |
+| 7 | `python scripts/figures/plot_vocal_alignment_outcome_correlations.py` | `06_figures/vocal_alignment_outcome_correlations.*`, `04_data/vocal_alignment_outcome_correlations.csv` |
 
 ## Optional Scripts
 

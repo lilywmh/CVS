@@ -979,7 +979,7 @@ def plot_confusion_matrix(y_true_continuous, y_pred_continuous, output_dir):
 
 
 # =============================================================================
-# 7. POSTER-READY FIGURES
+# 7. PUBLICATION-READY FIGURES
 # =============================================================================
 def make_figures(
     df: pd.DataFrame,
@@ -997,7 +997,7 @@ def make_figures(
     output_dir = Path(output_dir)
 
     print("\n" + "=" * 60)
-    print("STEP 7: GENERATING POSTER FIGURES")
+    print("STEP 7: GENERATING PUBLICATION FIGURES")
     print("=" * 60)
 
     features = model_results["features"]
