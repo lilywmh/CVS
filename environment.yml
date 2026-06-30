@@ -1,0 +1,29 @@
+name: cvs-conversation
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - ipykernel
+  - jupyterlab
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - statsmodels
+  - matplotlib
+  - seaborn
+  - tqdm
+  - pytorch
+  - torchaudio
+  - librosa
+  - soundfile
+  - pip:
+      - anthropic
+      - openai
+      - praat-parselmouth
+      - sentence-transformers
+      - speechbrain
+      - transformers

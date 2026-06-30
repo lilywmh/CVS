@@ -1,8 +1,20 @@
-recording_videos/
-_wav/
-all_srt/
-dyad1_250408/
-logs/
-outputs/
-WhisperXMac/
+# Heavy pipeline artifacts (now under 01_pipeline/)
+01_pipeline/recording_videos/
+01_pipeline/_wav/
+01_pipeline/all_srt/
+01_pipeline/logs/
+01_pipeline/outputs/
+01_pipeline/WhisperXMac/
+
+# Python / notebook runtime artifacts
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Heavy or generated analysis artifacts
+04_data/caches/
+05_analysis_outputs/
+06_figures/
+
+# macOS
 .DS_Store
