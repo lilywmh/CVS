@@ -16,7 +16,7 @@ Pipeline overview
 4. Screen        — univariate regressions against composite_z, keep p < .10
 5. Model         — OLS linear regression (composite_z) with 3–4 features
 6. Evaluate      — LOO-CV R², RMSE, bootstrap 95% CIs on coefficients
-7. Figures       — PCA loadings, coefficient plot, actual vs predicted (poster-ready)
+7. Figures       — PCA loadings, coefficient plot, actual vs predicted (publication-ready)
 
 Usage
 -----
@@ -989,7 +989,7 @@ def make_figures(
     output_dir,
 ):
     """
-    Generate three poster-ready figures:
+    Generate three publication-ready figures:
     1. PCA loading plot (outcome structure)
     2. Logistic regression coefficient plot with bootstrap CIs
     3. ROC curve (LOO-CV)

@@ -16,7 +16,7 @@ scripts/
   llm_annotation/         LLM-assisted turn and conversation annotation
   acoustic_alignment/     timestamp alignment, acoustic features, vocal alignment
   models/                 statistical analyses and optional covariates
-  figures/                poster and exploratory figures
+  figures/                publication and exploratory figures
 data/                     data dictionary and expected input layout
 config/                   example local path configuration
 PIPELINE.md               reproducible run order
@@ -65,8 +65,8 @@ Core text/annotation/model path:
 python scripts/text_features/compute_semantic_sentiment_features.py
 python scripts/text_features/compute_structural_conversation_features.py
 python scripts/llm_annotation/annotate_turns_claude.py
-python scripts/models/poster_multivariate_analysis.py
-python scripts/figures/make_poster_plots.py
+python scripts/models/analyze_multivariate_connection_models.py
+python scripts/figures/plot_dyad_feature_outcome_associations.py
 ```
 
 Vocal-alignment path:
@@ -78,9 +78,9 @@ python scripts/acoustic_alignment/extract_acoustic_features.py \
     --out 04_data/acoustic_turns.csv
 python scripts/acoustic_alignment/compute_vocal_alignment.py
 python scripts/models/test_vocal_alignment_incremental_validity.py
-python scripts/figures/plot_audio_alignment.py
-python scripts/figures/plot_highlow_compare.py
-python scripts/figures/plot_vocal_outcome_heatmap.py
+python scripts/figures/plot_vocal_handoff_alignment.py
+python scripts/figures/compare_high_low_connection_handoffs.py
+python scripts/figures/plot_vocal_alignment_outcome_correlations.py
 ```
 
 ## Outputs

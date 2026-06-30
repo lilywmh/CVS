@@ -89,7 +89,7 @@ CONFIG = {
     "out_csv": PROJECT / "05_analysis_outputs" / "dissociation_results.csv",
     "out_json": PROJECT / "05_analysis_outputs" / "dissociation_results.json",
     # PRIMARY outcome = "connection quality" composite (PC1 of these 3), matching
-    # poster_multivariate_analysis.py. solo is excluded from the composite (separate
+    # analyze_multivariate_connection_models.py. solo is excluded from the composite (separate
     # construct) and reported only as a secondary outcome.
     "composite_cols": [
         "dyad_partner_eval_mean", "dyad_shared_reality_mean", "dyad_enjoyment_mean",

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-plot_vocal_outcome_heatmap.py
+plot_vocal_alignment_outcome_correlations.py
 ================================
 Exploratory heatmap: correlation of each vocal-alignment metric with each
 connection outcome (N=24 dyads). Red = positive, blue = negative, * = p<.05
@@ -23,7 +23,7 @@ DATA = PROJECT / "04_data"
 FIG = PROJECT / "06_figures"
 
 # PRIMARY = connection composite (PC1 of the 3 social scales, matching
-# poster_multivariate_analysis.py); the 4 individual scales follow as secondary.
+# analyze_multivariate_connection_models.py); the 4 individual scales follow as secondary.
 COMPOSITE_COLS = ["dyad_partner_eval_mean", "dyad_shared_reality_mean",
                   "dyad_enjoyment_mean"]
 OUTC = ["connection_composite", "dyad_partner_eval_mean",

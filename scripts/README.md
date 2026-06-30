@@ -38,7 +38,7 @@ export OPENROUTER_API_KEY="..."
 | Script | Purpose | Main output |
 | --- | --- | --- |
 | `models/analyze_llm_features.py` | Regression screen for LLM-derived dyad features | `05_analysis_outputs/llm_regression_output/` |
-| `models/poster_multivariate_analysis.py` | Poster-oriented multivariate model, diagnostics, tables, and figures | `05_analysis_outputs/multivariate_output/` |
+| `models/analyze_multivariate_connection_models.py` | Multivariate models of dyad-level connection outcomes, diagnostics, tables, and figures | `05_analysis_outputs/multivariate_output/` |
 | `models/test_vocal_alignment_incremental_validity.py` | Pre-specified incremental/discriminant validity tests for vocal alignment | `05_analysis_outputs/dissociation_results.csv` and `.json` |
 | `models/build_covariates.py` | Optional dyad-level covariates from participant master sheet | `04_data/covariates_dyad.csv` |
 
@@ -49,10 +49,10 @@ analysis code; it is not the preferred replication entry point.
 
 | Script | Purpose |
 | --- | --- |
-| `figures/make_poster_plots.py` | Compact poster plots from semantic/structural features |
-| `figures/plot_audio_alignment.py` | Vocal-alignment illustration plots |
-| `figures/plot_highlow_compare.py` | High- vs low-connection exemplar comparison plots |
-| `figures/plot_vocal_outcome_heatmap.py` | Exploratory heatmap of vocal metrics vs outcomes |
+| `figures/plot_dyad_feature_outcome_associations.py` | Dyad-level feature-outcome association figures |
+| `figures/plot_vocal_handoff_alignment.py` | Vocal handoff-alignment example and dataset-level scatter |
+| `figures/compare_high_low_connection_handoffs.py` | High- vs low-connection handoff comparison figures |
+| `figures/plot_vocal_alignment_outcome_correlations.py` | Exploratory vocal-alignment metric by outcome correlation heatmap |
 
 Some scripts require raw audio, restricted transcript data, or API access. See
 `../PIPELINE.md` and `../data/README.md` for input placement and caveats.

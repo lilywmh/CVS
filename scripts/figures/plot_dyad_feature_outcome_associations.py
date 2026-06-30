@@ -12,7 +12,7 @@ PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
 SEMANTIC_PATH   = PROJECT / '04_data' / 'scientific_dyad_analysis_results.csv'
 STRUCTURAL_PATH = PROJECT / '04_data' / 'structural_dyad_analysis_mapped.csv'
 OUTCOMES_PATH   = PROJECT / '04_data' / 'outcomes.csv'
-OUTPUT_DIR      = PROJECT / '05_analysis_outputs' / 'poster_plots'
+OUTPUT_DIR      = PROJECT / '05_analysis_outputs' / 'dyad_feature_outcome_figures'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ─── STYLE ────────────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ def plot_interaction_profile(df):
 def plot_correlation_matrix(df):
     """
     Correlation matrix between key features and outcomes.
-    Clean, readable, poster-friendly.
+    Clean, readable, readable.
     """
     feature_map = {
         'sem_semantic_similarity':  'Semantic\nSimilarity',
@@ -253,8 +253,8 @@ if __name__ == '__main__':
     np.random.seed(42)
     df = load_dyad_data()
 
-    print("Generating poster plots...")
+    print("Generating dyad feature-outcome figures...")
     plot_interaction_profile(df)
     plot_correlation_matrix(df)
     plot_violin_by_outcome(df)
-    print(f"\nAll plots saved to '{OUTPUT_DIR}/'")
+    print(f"\nAll figures saved to '{OUTPUT_DIR}/'")
