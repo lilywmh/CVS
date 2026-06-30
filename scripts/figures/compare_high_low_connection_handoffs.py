@@ -11,6 +11,7 @@ evidence is in 05 / the scatter. For a talk/intro figure.
 scipy-only (reads 16 kHz WAV directly); intensity = short-time RMS in dB.
 """
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
 from scipy.io import wavfile
@@ -20,8 +21,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-WAV = PROJECT / "01_pipeline" / "_wav"
-FIG = PROJECT / "06_figures"
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+WAV = Path(os.environ.get("CVS_WAV_DIR", PROJECT / "01_pipeline" / "_wav"))
+FIG = Path(os.environ.get("CVS_FIGURES", PROJECT / "06_figures"))
 EDGE = 0.5
 WINDOW = 240.0                      # long window: capture many handoffs
 C = {0: "#2c7fb8", 1: "#d95f0e"}    # speaker 00 / 01
@@ -110,7 +112,7 @@ def scatter_compare():
     """Per-dyad offset->onset intensity scatter (within-speaker z), high vs low.
     Uses ALL of each dyad's speaker switches -> the clean view of 'matching'."""
     from scipy import stats
-    d = pd.read_csv(PROJECT / "04_data" / "acoustic_turns.csv")
+    d = pd.read_csv(DATA / "acoustic_turns.csv")
     fig, ax = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
     for a, ex in zip(ax, EXEMPLARS):
         g = d[d.dyad_id == ex["dyad"]].copy()
@@ -150,7 +152,7 @@ def handoffs_zoom(maxh=10, W=1.0, gap=0.5):
     """Splice out ONLY the +/- W s around each speaker switch (drop the long
     monologue middles) and lay the handoff zooms side by side. The thick bars
     are the 0.5 s edge levels; the black connector flat=matched, steep=mismatch."""
-    turns_all = pd.read_csv(PROJECT / "04_data" / "labeled_turns.csv")
+    turns_all = pd.read_csv(DATA / "labeled_turns.csv")
     fig, axes = plt.subplots(2, 1, figsize=(11, 6.5))
     for ax, ex in zip(axes, EXEMPLARS):
         wav, cond = find_wav(ex["dyad"])
@@ -208,7 +210,7 @@ def handoffs_zoom(maxh=10, W=1.0, gap=0.5):
 
 
 def main():
-    turns = pd.read_csv(PROJECT / "04_data" / "labeled_turns.csv")
+    turns = pd.read_csv(DATA / "labeled_turns.csv")
     fig, ax = plt.subplots(2, 1, figsize=(11, 6.5))
     for a, ex in zip(ax, EXEMPLARS):
         panel(a, ex, turns)

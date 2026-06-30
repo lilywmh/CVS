@@ -42,11 +42,12 @@ test_vocal_alignment_incremental_validity.py enters condition as a covariate.
 
 Usage:
   python scripts/acoustic_alignment/compute_vocal_alignment.py
-  python scripts/acoustic_alignment/compute_vocal_alignment.py --in 04_data/acoustic_turns.csv --out ...
+  python scripts/acoustic_alignment/compute_vocal_alignment.py --in "${CVS_DATA:-04_data}/acoustic_turns.csv" --out ...
 """
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
@@ -54,10 +55,11 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
 
 CONFIG = {
-    "in": PROJECT / "04_data" / "acoustic_turns.csv",
-    "out": PROJECT / "04_data" / "vocal_alignment_dyad.csv",
+    "in": DATA / "acoustic_turns.csv",
+    "out": DATA / "vocal_alignment_dyad.csv",
     "n_baseline_shuffles": 200,   # for proximity baseline
     "min_switches": 5,            # need at least this many speaker switches
     "n_surrogate": 2000,          # cross-dyad pseudo-pairs for the chance test

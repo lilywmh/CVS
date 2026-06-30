@@ -22,22 +22,24 @@ published keys; the 1..k response direction in Qualtrics must be confirmed):
 Each scale is aggregated to dyad level as the MEAN of the two partners (and the
 absolute difference, in case dissimilarity matters).
 
-Output: 04_data/covariates_dyad.csv (one row per pair_id)
+Output: ${CVS_DATA:-04_data}/covariates_dyad.csv (one row per pair_id)
 
 Usage:
   python scripts/models/build_covariates.py --master /path/to/master.csv
 
 If --master is omitted, the script looks for common private/master-sheet names
-under data/private, data/raw, and 04_data.
+under data/private, data/raw, and ${CVS_DATA:-04_data}.
 """
 from __future__ import annotations
 import argparse
+import os
 from pathlib import Path
 import numpy as np
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
 CURRENT_YEAR = 2026
 
 MASTER_CANDIDATES = [
@@ -46,9 +48,9 @@ MASTER_CANDIDATES = [
     PROJECT / "data" / "private" / "participant_master.csv",
     PROJECT / "data" / "raw" / "master_sheet_one_row_per_participant.csv",
     PROJECT / "data" / "raw" / "participant_master.csv",
-    PROJECT / "04_data" / "master_sheet_one_row_per_participant.csv",
-    PROJECT / "04_data" / "MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv",
-    PROJECT / "04_data" / "participant_master.csv",
+    DATA / "master_sheet_one_row_per_participant.csv",
+    DATA / "MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv",
+    DATA / "participant_master.csv",
 ]
 
 # ---- scale item keys (response scales confirmed from survey screenshots,
@@ -188,7 +190,7 @@ def parse_args():
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--master", default=None,
                    help="Participant master CSV. If omitted, common private/master-sheet paths are searched.")
-    p.add_argument("--out", default=str(PROJECT / "04_data" / "covariates_dyad.csv"))
+    p.add_argument("--out", default=str(DATA / "covariates_dyad.csv"))
     a = p.parse_args()
 
     master = Path(a.master).expanduser() if a.master else None

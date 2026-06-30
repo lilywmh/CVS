@@ -20,9 +20,13 @@ from openai import OpenAI
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-PIPER_DIR  = str(PROJECT / '01_pipeline' / 'all_srt' / 'piper')
-CLOUDY_DIR = str(PROJECT / '01_pipeline' / 'all_srt' / 'cloudy')
-OUTPUT_DIR = str(PROJECT / '05_analysis_outputs' / 'qwen_annotation_output')
+SRT_ROOT = Path(os.environ.get("CVS_SRT_ROOT", PROJECT / '01_pipeline' / 'all_srt'))
+ANALYSIS_OUTPUTS = Path(
+    os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / '05_analysis_outputs')
+)
+PIPER_DIR  = str(SRT_ROOT / 'piper')
+CLOUDY_DIR = str(SRT_ROOT / 'cloudy')
+OUTPUT_DIR = str(ANALYSIS_OUTPUTS / 'qwen_annotation_output')
 TURNS_DIR  = os.path.join(OUTPUT_DIR, 'turns')
 os.makedirs(TURNS_DIR, exist_ok=True)
 

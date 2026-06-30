@@ -72,6 +72,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -82,12 +83,16 @@ from sklearn.preprocessing import StandardScaler
 
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+ANALYSIS_OUTPUTS = Path(
+    os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / "05_analysis_outputs")
+)
 
 CONFIG = {
-    "turn_csv": PROJECT / "04_data" / "dyad_level_dataset.csv",
-    "vocal_csv": PROJECT / "04_data" / "vocal_alignment_dyad.csv",
-    "out_csv": PROJECT / "05_analysis_outputs" / "dissociation_results.csv",
-    "out_json": PROJECT / "05_analysis_outputs" / "dissociation_results.json",
+    "turn_csv": DATA / "dyad_level_dataset.csv",
+    "vocal_csv": DATA / "vocal_alignment_dyad.csv",
+    "out_csv": ANALYSIS_OUTPUTS / "dissociation_results.csv",
+    "out_json": ANALYSIS_OUTPUTS / "dissociation_results.json",
     # PRIMARY outcome = "connection quality" composite (PC1 of these 3), matching
     # analyze_multivariate_connection_models.py. solo is excluded from the composite (separate
     # construct) and reported only as a secondary outcome.
@@ -100,7 +105,7 @@ CONFIG = {
         "dyad_enjoyment_mean", "dyad_solo_mean",
     ],
     # optional dyad covariates (robustness model; off by default to save power)
-    "covariate_csv": PROJECT / "04_data" / "covariates_dyad.csv",
+    "covariate_csv": DATA / "covariates_dyad.csv",
     "extra_controls": ["age_mean", "gender_mixed"],
     "with_covariates": False,
     # THEORY-SPECIFIED vocal index (from prior entrainment literature, NOT from

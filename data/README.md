@@ -4,13 +4,19 @@ This folder is the intended location for data files in a clean replication
 checkout. Most data are ignored by Git because they may be large, generated, or
 restricted.
 
+The public repository does not need the complete private folder tree. Scripts
+use repository-relative local defaults for the original development checkout,
+but private replications can use the cleaner paths below with environment
+variables such as `CVS_DATA`, `CVS_SRT_ROOT`, `CVS_WHISPERX_OUTPUTS`, and
+`CVS_WAV_DIR`. Figure scripts also respect `CVS_FIGURES`.
+
 ## Subfolders
 
 | Folder | Purpose | Commit to Git? |
 | --- | --- | --- |
 | `raw/` | Raw recordings, raw exports, original participant files | No |
 | `interim/` | Intermediate files such as converted audio, WhisperX output, caches | No |
-| `derived/` | De-identified derived CSVs used for analysis replication | Optional |
+| `derived/` | De-identified derived CSVs used for analysis replication | No by default; force-add only if approved for public sharing |
 | `private/` | Restricted master sheets or participant-level data | No |
 
 ## Key Files Used By Scripts

@@ -54,15 +54,23 @@ from tqdm import tqdm
 # ─── CONFIG (override via CLI) ────────────────────────────────────────────────
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+WHISPERX_OUTPUTS = Path(
+    os.environ.get("CVS_WHISPERX_OUTPUTS", PROJECT / "01_pipeline" / "outputs")
+)
+WAV_DIR = Path(os.environ.get("CVS_WAV_DIR", PROJECT / "01_pipeline" / "_wav"))
 
 CONFIG = {
+    # Defaults point to the local private-data layout used during development.
+    # These folders are intentionally ignored by Git. Replicators can either
+    # recreate this layout locally or pass --outputs-dir/--wav-dir/--log-path/--out.
     # WhisperX per-dyad output dirs, each containing one *_discussion_16k.srt
-    "outputs_dir": PROJECT / "01_pipeline" / "outputs",
+    "outputs_dir": WHISPERX_OUTPUTS,
     # 16 kHz mono WAVs produced by the WhisperX pipeline
-    "wav_dir": PROJECT / "01_pipeline" / "_wav",
+    "wav_dir": WAV_DIR,
     # experimental log w/ SPEAKER_xx -> role (A/B) mapping + Order
-    "log_path": PROJECT / "04_data" / "Discussion Transcription Log - Sheet1.csv",
-    "out": PROJECT / "04_data" / "acoustic_turns.csv",
+    "log_path": DATA / "Discussion Transcription Log - Sheet1.csv",
+    "out": DATA / "acoustic_turns.csv",
     # turn segmentation
     "merge_gap_s": 0.30,   # cues by same speaker within this gap -> one turn
     "min_turn_s": 0.25,    # drop turns shorter than this (unreliable f0)

@@ -52,6 +52,18 @@ place private inputs in the documented local paths:
 - derived analysis tables under `04_data/`
 - participant master sheet at `04_data/MASTER_SHEET_ONE_ROW_PER_PARTICIPANT.csv`
 
+These are local defaults, not public repository contents. If you keep private
+data in a cleaner layout, set path variables before running scripts:
+
+```bash
+export CVS_SRT_ROOT=data/raw/all_srt
+export CVS_WHISPERX_OUTPUTS=data/interim/whisperx_outputs
+export CVS_WAV_DIR=data/interim/wav_16k
+export CVS_DATA=data/derived
+export CVS_ANALYSIS_OUTPUTS=outputs
+export CVS_FIGURES=figures
+```
+
 See `data/README.md` for the expected files and privacy notes.
 
 ## Reproduction
@@ -74,8 +86,8 @@ Vocal-alignment path:
 ```bash
 python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py
 python scripts/acoustic_alignment/extract_acoustic_features.py \
-    --turns-csv 04_data/labeled_turns.csv \
-    --out 04_data/acoustic_turns.csv
+    --turns-csv "${CVS_DATA:-04_data}/labeled_turns.csv" \
+    --out "${CVS_DATA:-04_data}/acoustic_turns.csv"
 python scripts/acoustic_alignment/compute_vocal_alignment.py
 python scripts/models/test_vocal_alignment_incremental_validity.py
 python scripts/figures/plot_vocal_handoff_alignment.py

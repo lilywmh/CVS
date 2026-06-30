@@ -16,6 +16,7 @@ Uses only scipy + numpy + matplotlib (no parselmouth/librosa needed).
 f0 via autocorrelation; intensity via short-time RMS.
 """
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
 from scipy.io import wavfile
@@ -25,8 +26,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-WAV_DIR = PROJECT / "01_pipeline" / "_wav"
-FIG = PROJECT / "06_figures"
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+WAV_DIR = Path(os.environ.get("CVS_WAV_DIR", PROJECT / "01_pipeline" / "_wav"))
+FIG = Path(os.environ.get("CVS_FIGURES", PROJECT / "06_figures"))
 FIG.mkdir(exist_ok=True)
 
 EX_DYAD, EX_COND = "dyad12_250928", "piper"
@@ -80,7 +82,7 @@ def fig_example():
     yw = y[a:b]
     tw = np.arange(len(yw)) / sr + T0
 
-    turns = pd.read_csv(PROJECT / "04_data" / "labeled_turns.csv")
+    turns = pd.read_csv(DATA / "labeled_turns.csv")
     turns = turns[(turns.dyad_id == EX_DYAD) & (turns.condition == EX_COND)]
     seg_turns = turns[(turns.t_end > T0) & (turns.t_start < T1)].sort_values("t_start")
 
@@ -148,7 +150,7 @@ def fig_example():
 
 # ---------- Figure 2: dataset-level offset->onset scatter ----------
 def fig_scatter():
-    d = pd.read_csv(PROJECT / "04_data" / "acoustic_turns.csv")
+    d = pd.read_csv(DATA / "acoustic_turns.csv")
     rows = []
     for (dy, cond), g in d.groupby(["dyad_id", "condition"]):
         g = g.sort_values("t_start").reset_index(drop=True)

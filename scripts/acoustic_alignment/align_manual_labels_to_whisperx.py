@@ -32,12 +32,13 @@ cautiously).
 
 Then run acoustic extraction in transfer mode:
   python scripts/acoustic_alignment/extract_acoustic_features.py \
-      --turns-csv 04_data/labeled_turns.csv \
-      --out 04_data/acoustic_turns.csv
+      --turns-csv "${CVS_DATA:-04_data}/labeled_turns.csv" \
+      --out "${CVS_DATA:-04_data}/acoustic_turns.csv"
 
 Dependencies: numpy, pandas (stdlib difflib for alignment)
 Usage:
   python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py
+  python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py --srt-root data/raw/all_srt
   python scripts/acoustic_alignment/align_manual_labels_to_whisperx.py --limit 1
 """
 from __future__ import annotations
@@ -45,6 +46,7 @@ from __future__ import annotations
 import argparse
 import difflib
 import glob
+import os
 import re
 from pathlib import Path
 
@@ -52,16 +54,24 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+SRT_ROOT = Path(os.environ.get("CVS_SRT_ROOT", PROJECT / "01_pipeline" / "all_srt"))
+WHISPERX_OUTPUTS = Path(
+    os.environ.get("CVS_WHISPERX_OUTPUTS", PROJECT / "01_pipeline" / "outputs")
+)
 
 CONFIG = {
+    # Defaults point to the local private-data layout used during development.
+    # These folders are intentionally ignored by Git. Replicators can either
+    # recreate this layout locally or pass --outputs-dir/--log-path/--out.
     "manual_dirs": {
-        "piper": PROJECT / "01_pipeline" / "all_srt" / "piper",
-        "cloudy": PROJECT / "01_pipeline" / "all_srt" / "cloudy",
+        "piper": SRT_ROOT / "piper",
+        "cloudy": SRT_ROOT / "cloudy",
     },
     # WhisperX SRTs (word-highlighted) live in per-dyad output dirs
-    "outputs_dir": PROJECT / "01_pipeline" / "outputs",
-    "log_path": PROJECT / "04_data" / "Discussion Transcription Log - Sheet1.csv",
-    "out": PROJECT / "04_data" / "labeled_turns.csv",
+    "outputs_dir": WHISPERX_OUTPUTS,
+    "log_path": DATA / "Discussion Transcription Log - Sheet1.csv",
+    "out": DATA / "labeled_turns.csv",
     "min_turn_words": 1,
 }
 
@@ -315,12 +325,16 @@ def run(cfg):
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--srt-root", default=str(SRT_ROOT),
+                   help="folder containing piper/ and cloudy/ corrected transcript folders")
     p.add_argument("--outputs-dir", default=str(CONFIG["outputs_dir"]))
     p.add_argument("--log-path", default=str(CONFIG["log_path"]))
     p.add_argument("--out", default=str(CONFIG["out"]))
     p.add_argument("--limit", type=int, default=None)
     a = p.parse_args()
     cfg = dict(CONFIG)
+    srt_root = Path(a.srt_root)
+    cfg["manual_dirs"] = {"piper": srt_root / "piper", "cloudy": srt_root / "cloudy"}
     cfg.update({"outputs_dir": a.outputs_dir, "log_path": a.log_path,
                 "out": a.out, "limit": a.limit})
     return cfg

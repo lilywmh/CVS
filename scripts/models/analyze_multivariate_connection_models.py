@@ -78,16 +78,18 @@ THEME = {
 
 # ---- User-configurable paths ------------------------------------------------
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-DATA_DIR = PROJECT / "04_data"              # directory containing CSVs
-# OUTPUT_DIR = Path("./multivariate_output")   # all outputs go here
+DATA_DIR = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+ANALYSIS_OUTPUTS = Path(
+    os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / "05_analysis_outputs")
+)
 
 # ---- Input file names --------------------------------------------------------
 STRUCTURAL_FILE = DATA_DIR / "structural_dyad_analysis_mapped.csv"
 SEMANTIC_FILE   = DATA_DIR / "scientific_dyad_analysis_results.csv"
-LLM_FILE        = PROJECT / "05_analysis_outputs" / "llm_annotation_output" / "dyad_features.csv"
+LLM_FILE        = ANALYSIS_OUTPUTS / "llm_annotation_output" / "dyad_features.csv"
 OUTCOMES_FILE   = DATA_DIR / "outcomes.csv"
-ENGAGEMENT_FILE = PROJECT / "05_analysis_outputs" / "llm_annotation_output" / "conversation_level.csv"
-OUTPUT_DIR = PROJECT / "05_analysis_outputs" / "multivariate_output"
+ENGAGEMENT_FILE = ANALYSIS_OUTPUTS / "llm_annotation_output" / "conversation_level.csv"
+OUTPUT_DIR = ANALYSIS_OUTPUTS / "multivariate_output"
 
 # ---- Outcome columns (as they appear in outcomes.csv) ------------------------
 OUTCOME_COLS = [

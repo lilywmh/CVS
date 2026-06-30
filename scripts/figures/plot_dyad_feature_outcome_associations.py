@@ -9,10 +9,14 @@ from scipy import stats
 
 # ─── PATHS ────────────────────────────────────────────────────────────────────
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-SEMANTIC_PATH   = PROJECT / '04_data' / 'scientific_dyad_analysis_results.csv'
-STRUCTURAL_PATH = PROJECT / '04_data' / 'structural_dyad_analysis_mapped.csv'
-OUTCOMES_PATH   = PROJECT / '04_data' / 'outcomes.csv'
-OUTPUT_DIR      = PROJECT / '05_analysis_outputs' / 'dyad_feature_outcome_figures'
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+ANALYSIS_OUTPUTS = Path(
+    os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / "05_analysis_outputs")
+)
+SEMANTIC_PATH   = DATA / 'scientific_dyad_analysis_results.csv'
+STRUCTURAL_PATH = DATA / 'structural_dyad_analysis_mapped.csv'
+OUTCOMES_PATH   = DATA / 'outcomes.csv'
+OUTPUT_DIR      = ANALYSIS_OUTPUTS / 'dyad_feature_outcome_figures'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ─── STYLE ────────────────────────────────────────────────────────────────────

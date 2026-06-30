@@ -11,9 +11,13 @@ warnings.filterwarnings('ignore')
 
 # ─── CONFIGURATION ────────────────────────────────────────────────────────────
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-FEATURES_PATH = PROJECT / '05_analysis_outputs' / 'llm_annotation_output' / 'dyad_features.csv'
-OUTCOMES_PATH = PROJECT / '04_data' / 'outcomes.csv'
-OUTPUT_DIR    = PROJECT / '05_analysis_outputs' / 'llm_regression_output'
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / '04_data'))
+ANALYSIS_OUTPUTS = Path(
+    os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / '05_analysis_outputs')
+)
+FEATURES_PATH = ANALYSIS_OUTPUTS / 'llm_annotation_output' / 'dyad_features.csv'
+OUTCOMES_PATH = DATA / 'outcomes.csv'
+OUTPUT_DIR    = ANALYSIS_OUTPUTS / 'llm_regression_output'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 OUTCOME_COLS = [

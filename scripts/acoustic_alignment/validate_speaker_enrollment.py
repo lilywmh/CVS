@@ -65,6 +65,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
@@ -72,11 +73,13 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+WAV_DIR = Path(os.environ.get("CVS_WAV_DIR", PROJECT / "01_pipeline" / "_wav"))
 
 CONFIG = {
-    "turns_csv": PROJECT / "04_data" / "labeled_turns.csv",
-    "wav_dir": PROJECT / "01_pipeline" / "_wav",
-    "out": PROJECT / "04_data" / "enroll_validation.csv",
+    "turns_csv": DATA / "labeled_turns.csv",
+    "wav_dir": WAV_DIR,
+    "out": DATA / "enroll_validation.csv",
     "enroll_question": 1,      # which Question block to enroll from
     "min_embed_s": 1.0,        # skip turns shorter than this (unreliable x-vector)
     "min_coverage": 0.6,       # skip low-alignment turns for enrollment

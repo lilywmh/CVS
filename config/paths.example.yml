@@ -1,6 +1,6 @@
-# Example path configuration for a clean replication checkout.
-# Current scripts still use repository-relative defaults, but this file documents
-# the intended locations for future config-driven execution.
+# Example local path configuration for a private replication checkout.
+# Do not commit real data folders. Copy this file to a private notes/config
+# location if needed, or set the matching environment variables below.
 
 transcripts_root: data/raw/all_srt
 whisperx_outputs: data/interim/whisperx_outputs
@@ -13,3 +13,11 @@ figures: figures
 transcription_log: data/derived/Discussion Transcription Log - Sheet1.csv
 outcomes: data/derived/outcomes.csv
 participant_master: data/private/master_sheet_one_row_per_participant.csv
+
+# Equivalent environment variables used by selected scripts:
+# CVS_SRT_ROOT=data/raw/all_srt
+# CVS_WHISPERX_OUTPUTS=data/interim/whisperx_outputs
+# CVS_WAV_DIR=data/interim/wav_16k
+# CVS_DATA=data/derived
+# CVS_ANALYSIS_OUTPUTS=outputs
+# CVS_FIGURES=figures

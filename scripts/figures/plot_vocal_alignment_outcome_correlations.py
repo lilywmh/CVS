@@ -9,6 +9,7 @@ connection outcome (N=24 dyads). Red = positive, blue = negative, * = p<.05
 EXPLORATORY ONLY -- not the confirmatory composite test (see 05).
 """
 from pathlib import Path
+import os
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -19,8 +20,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 PROJECT = Path(__file__).resolve().parents[2]  # cvs_conversation/
-DATA = PROJECT / "04_data"
-FIG = PROJECT / "06_figures"
+DATA = Path(os.environ.get("CVS_DATA", PROJECT / "04_data"))
+FIG = Path(os.environ.get("CVS_FIGURES", PROJECT / "06_figures"))
 
 # PRIMARY = connection composite (PC1 of the 3 social scales, matching
 # analyze_multivariate_connection_models.py); the 4 individual scales follow as secondary.
