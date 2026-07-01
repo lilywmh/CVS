@@ -40,6 +40,7 @@ export OPENROUTER_API_KEY="..."
 | `models/analyze_llm_features.py` | Regression screen for LLM-derived dyad features | `05_analysis_outputs/llm_regression_output/` |
 | `models/analyze_multivariate_connection_models.py` | Multivariate models of dyad-level connection outcomes, diagnostics, tables, and figures | `05_analysis_outputs/multivariate_output/` |
 | `models/test_vocal_alignment_incremental_validity.py` | Pre-specified incremental/discriminant validity tests for vocal alignment | `05_analysis_outputs/dissociation_results.csv` and `.json` |
+| `models/analyze_gender_acoustic_confound.py` | Exploratory check for gender composition and raw pitch-difference as acoustic confounds | `05_analysis_outputs/gender_mixed_analysis.csv` and `gender_pitch_confound_check.csv` |
 | `models/build_covariates.py` | Optional dyad-level covariates from participant master sheet | `04_data/covariates_dyad.csv` |
 
 `models/legacy/legacy_dyad_analysis.py` is retained for comparison with earlier

@@ -76,6 +76,12 @@ Speaker-enrollment validation:
 python scripts/acoustic_alignment/validate_speaker_enrollment.py
 ```
 
+Gender/acoustic confound check:
+
+```bash
+python scripts/models/analyze_gender_acoustic_confound.py
+```
+
 Legacy comparison analysis:
 
 ```bash
