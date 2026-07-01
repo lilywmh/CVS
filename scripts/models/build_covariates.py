@@ -12,12 +12,14 @@ SOLID (use directly):
                     (Q23 is coded 1/2; we don't assume which is which, so we
                      report same-vs-mixed, which is the usual dyad covariate)
 
-DRAFT — VERIFY CODING DIRECTION before trusting (scored from raw items with
-published keys; the 1..k response direction in Qualtrics must be confirmed):
-  - ucla_loneliness : UCLA v3, 20 items, reverse 1,5,6,9,10,15,16,19,20
-  - phq9            : sum of available PHQ-9 items (depression)
-  - aq10            : AQ-10 autism-trait score (agree/disagree -> 1 pt rule)
-  - self_monitoring : version unclear (1..5 + code 9) -> NOT scored, flagged
+Scored scales:
+  - ucla_loneliness : straight sum of the 1978 unidirectional item set
+                      (0..3; no reverse-coded items)
+  - phq9            : symptom-item sum of available PHQ items
+                      (item 9 absent; Q6 impairment item excluded)
+  - aq10            : Likert-sum score, reverse-coding items 2,3,4,5,6,9
+  - self_monitoring : 6-point scale with code 9 as missing, reverse-coding
+                      only negatively worded items 9 and 12
 
 Each scale is aggregated to dyad level as the MEAN of the two partners (and the
 absolute difference, in case dissimilarity matters).
