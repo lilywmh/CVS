@@ -5,6 +5,9 @@
 transcripts_root: data/raw/all_srt
 whisperx_outputs: data/interim/whisperx_outputs
 wav_dir: data/interim/wav_16k
+video_dir: 01_pipeline/recording_videos
+video_outputs: data/interim/video_behavior/runs
+video_turn_outputs: data/interim/video_behavior/turn_runs
 derived_data: data/derived
 private_data: data/private
 analysis_outputs: outputs
@@ -13,11 +16,16 @@ figures: figures
 transcription_log: data/derived/Discussion Transcription Log - Sheet1.csv
 outcomes: data/derived/outcomes.csv
 participant_master: data/private/master_sheet_one_row_per_participant.csv
+video_metadata: data/private/video_metadata.csv
+labeled_turns: 04_data/labeled_turns.csv
+discussion_subject_logs: 04_data/Discussion Transcription Log - Sheet1.csv
 
 # Equivalent environment variables used by selected scripts:
 # CVS_SRT_ROOT=data/raw/all_srt
 # CVS_WHISPERX_OUTPUTS=data/interim/whisperx_outputs
 # CVS_WAV_DIR=data/interim/wav_16k
+# CVS_VIDEO_DIR=01_pipeline/recording_videos
+# CVS_VIDEO_OUTPUTS=data/interim/video_behavior/runs
 # CVS_DATA=data/derived
 # CVS_ANALYSIS_OUTPUTS=outputs
 # CVS_FIGURES=figures

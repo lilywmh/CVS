@@ -1,0 +1,116 @@
+# Project-specific config for turn-aligned CVS video behavior analysis.
+# Copy this to a private config file before inserting restricted paths or IDs.
+
+project:
+  video_dir: 01_pipeline/recording_videos
+  # Optional. Leave blank to generate metadata from video_dir filenames.
+  video_metadata_path:
+  video_view_preference:
+    - discussion
+    - 1st_view
+    - 2nd_view
+  aligned_turns_path: 04_data/labeled_turns.csv
+  speaker_log_path: 04_data/Discussion Transcription Log - Sheet1.csv
+  output_root: data/interim/video_behavior/turn_runs
+  accepted_video_extensions:
+    - .mp4
+    - .mov
+    - .m4v
+    - .avi
+    - .mkv
+
+run:
+  run_id:
+  overwrite: false
+  fail_fast: false
+  continue_on_warning: true
+
+schema:
+  video_metadata_required:
+    - dyad_id
+    - session_id
+    - video_id
+    - video_path
+  aligned_turns_required:
+    - dyad_id
+    - question
+    - turn_idx
+    - speaker
+    - t_start
+    - t_end
+  speaker_log_required:
+    - dyad_id
+    - session_id
+    - speaker_label
+
+validation:
+  expected_sessions_per_dyad: 2
+  expected_question_ids:
+  allow_overlapping_turns: false
+  min_turn_duration_sec: 0.20
+  max_turn_duration_sec: 300.0
+  empty_utterance_warning: true
+  timestamp_tolerance_sec: 0.05
+  speaker_log_question_column: question_id
+  speaker_log_validity_column: segment_valid
+  speaker_log_notes_column: notes
+  speaker_log_participant_column: participant_id
+  speaker_log_role_column: participant_role
+
+sampling:
+  sample_fps: 2.0
+  max_frames_per_turn:
+
+# Default assumes a fixed camera with participant role A on the left and B on
+# the right. The runner maps SPEAKER_00/SPEAKER_01 to A/B using labeled_turns
+# role values and the discussion transcription log.
+participants:
+  - participant_id: A
+    speaker_label: A
+    roi: [0.0, 0.0, 0.5, 1.0]
+  - participant_id: B
+    speaker_label: B
+    roi: [0.5, 0.0, 1.0, 1.0]
+
+mediapipe:
+  enabled: true
+  pose_enabled: true
+  hands_enabled: true
+  pose_model_complexity: 2
+  pose_min_detection_confidence: 0.50
+  hands_max_num_hands: 2
+  hands_min_detection_confidence: 0.50
+
+# Optional: parse precomputed OpenFace CSVs and aggregate them into transcript
+# turns. This runner does not infer turns from OpenFace/video.
+openface:
+  enabled: false
+  input_csv_dir:
+  confidence_min: 0.80
+  success_required: true
+
+features:
+  motion_speed_threshold_px_s: 40.0
+  hold_speed_threshold_px_s: 10.0
+
+# Transparent whole-arm posture/movement proxies from MediaPipe Pose
+# shoulder-elbow-wrist landmarks. These are descriptive visual states, not
+# psychological interpretations.
+upper_limb:
+  enabled: true
+  visibility_min: 0.30
+  movement_speed_threshold_px_s: 60.0
+  hold_speed_threshold_px_s: 12.0
+  near_face_threshold_norm: 0.75
+  raised_wrist_threshold_norm: -0.15
+  resting_low_threshold_norm: 0.75
+  open_openness_threshold: 0.85
+  closed_openness_threshold: 0.45
+  contracted_extension_threshold: 0.55
+
+qc:
+  pose_detection_rate_warning: 0.50
+  hand_detection_rate_warning: 0.20
+  arm_detection_rate_warning: 0.50
+  high_missingness_warning: 0.50
+  save_html_report: true

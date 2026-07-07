@@ -1,0 +1,69 @@
+# Example config for the CVS video behavior pipeline.
+# Copy this file to a private config location before changing paths that reveal
+# restricted data locations or participant identifiers.
+
+project:
+  video_dir: data/raw/videos
+  output_root: data/interim/video_behavior/runs
+  accepted_video_extensions:
+    - .mp4
+    - .mov
+    - .m4v
+    - .avi
+    - .mkv
+
+run:
+  run_id:
+  overwrite: false
+  expected_fps:
+  fps_tolerance: 0.05
+  continue_on_warning: true
+  fail_fast: false
+  allow_empty_optional_outputs: true
+
+sampling:
+  sample_fps: 2.0
+  max_frames_per_video:
+
+# The default assumes a fixed camera with one participant on each side.
+# Coordinates are normalized [x0, y0, x1, y1] with origin at the top-left.
+participants:
+  - participant_id: left
+    roi: [0.0, 0.0, 0.5, 1.0]
+  - participant_id: right
+    roi: [0.5, 0.0, 1.0, 1.0]
+
+# OpenFace is the preferred source for AUs, gaze, and head pose. It is disabled
+# by default because OpenFace 2.x is an external binary, not a pip dependency.
+openface:
+  enabled: false
+  required: false
+  executable: FeatureExtraction
+  input_csv_dir:
+  confidence_min: 0.80
+  success_required: true
+
+mediapipe:
+  enabled: true
+  pose_enabled: true
+  hands_enabled: true
+  pose_model_complexity: 2
+  pose_min_detection_confidence: 0.50
+  pose_min_tracking_confidence: 0.50
+  hands_max_num_hands: 2
+  hands_min_detection_confidence: 0.50
+  hands_min_tracking_confidence: 0.50
+
+features:
+  motion_speed_threshold_px_s: 40.0
+  hold_speed_threshold_px_s: 10.0
+  min_stroke_duration_s: 0.20
+  max_post_stroke_hold_s: 2.0
+
+qc:
+  save_overlay_frames: true
+  max_overlay_frames: 8
+  save_plots: true
+  pose_detection_rate_warning: 0.50
+  hand_detection_rate_warning: 0.20
+  coordinate_margin_px: 25
