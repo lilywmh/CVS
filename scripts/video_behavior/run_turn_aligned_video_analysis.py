@@ -117,9 +117,13 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "sample_fps": 2.0,
         "max_frames_per_turn": None,
     },
+    # Lab standard (fixed camera setup, hard-coded for every video):
+    # participant A = door side = RIGHT half of the frame,
+    # participant B = window side = LEFT half of the frame.
+    # participant_roi_lookup() enforces this; configs that contradict it fail.
     "participants": [
-        {"participant_id": "A", "speaker_label": "A", "roi": [0.0, 0.0, 0.5, 1.0]},
-        {"participant_id": "B", "speaker_label": "B", "roi": [0.5, 0.0, 1.0, 1.0]},
+        {"participant_id": "A", "speaker_label": "A", "roi": [0.5, 0.0, 1.0, 1.0]},
+        {"participant_id": "B", "speaker_label": "B", "roi": [0.0, 0.0, 0.5, 1.0]},
     ],
     "mediapipe": {
         "enabled": True,
@@ -545,8 +549,43 @@ def speaker_lookup_from_config(config: dict[str, Any]) -> dict[str, str]:
     return mapping
 
 
+# Fixed camera setup, identical in every recording (hard-coded lab standard):
+# on screen, participant A (door side) is on the RIGHT and participant B
+# (window side) is on the LEFT. Confirmed by mouth-motion QC
+# (see scripts/video_behavior/build_participant_side_map.py).
+PARTICIPANT_SIDE_STANDARD = {"A": "right", "B": "left"}
+
+
+def roi_screen_side(roi: list[float]) -> str:
+    """Classify an ROI as the left or right half of the frame by its x-center."""
+    x_center = (float(roi[0]) + float(roi[2])) / 2.0
+    return "right" if x_center >= 0.5 else "left"
+
+
 def participant_roi_lookup(config: dict[str, Any]) -> dict[str, list[float]]:
-    return {str(p["participant_id"]): p["roi"] for p in config["participants"]}
+    rois = {str(p["participant_id"]): p["roi"] for p in config["participants"]}
+    for participant_id, expected_side in PARTICIPANT_SIDE_STANDARD.items():
+        roi = rois.get(participant_id)
+        if roi is None:
+            continue
+        actual_side = roi_screen_side(roi)
+        if actual_side != expected_side:
+            raise PipelineError(
+                f"Participant {participant_id} ROI is on the video {actual_side}, "
+                f"but the lab standard fixes {participant_id} on the video "
+                f"{expected_side} (A = door side = right, B = window side = left).",
+                stage="config_loading",
+                likely_cause="The config participants section contradicts the fixed camera setup.",
+                suggested_fix=(
+                    f"Set participant {participant_id} roi to "
+                    f"{[0.5, 0.0, 1.0, 1.0] if expected_side == 'right' else [0.0, 0.0, 0.5, 1.0]} "
+                    "or remove the participants section to use the enforced default."
+                ),
+                affected_file="config participants section",
+                can_continue=False,
+                level="CRITICAL",
+            )
+    return rois
 
 
 def validate_project_inputs(

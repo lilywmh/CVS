@@ -109,8 +109,9 @@ STATUS_COLORS = {
     "insufficient_face_detection": (40, 40, 255),
     "missing": (190, 190, 190),
 }
-PID_TO_SIDE = {"A": "left", "B": "right", "a": "left", "b": "right"}
-SIDE_TO_PID = {"left": "A", "right": "B"}
+# Hard-coded lab standard: A = door side = video RIGHT, B = window side = LEFT.
+PID_TO_SIDE = {"A": "right", "B": "left", "a": "right", "b": "left"}
+SIDE_TO_PID = {"left": "B", "right": "A"}
 
 
 def read_json_if_exists(path: Path) -> dict[str, Any]:
@@ -490,9 +491,9 @@ def draw_mapping_overlay(cv2: Any, frame: Any, turn: pd.Series, participant_rois
         f"predicted_visual={predicted_pid}/{predicted_side} confidence={conf} status={status} match={match}",
     ]
     if left_score or right_score:
-        lines.append(f"mouth motion: left/A={left_score} right/B={right_score}")
+        lines.append(f"mouth motion: left/B={left_score} right/A={right_score}")
     if left_face or right_face:
-        lines.append(f"face detection: left/A={left_face} right/B={right_face}")
+        lines.append(f"face detection: left/B={left_face} right/A={right_face}")
     lines.extend(wrap_text(str(turn.get("transcript_text", "") or "")))
     draw_multiline_text(cv2, frame, lines, 20, 35, status_color)
 

@@ -27,6 +27,9 @@ sampling:
 
 # The default assumes a fixed camera with one participant on each side.
 # Coordinates are normalized [x0, y0, x1, y1] with origin at the top-left.
+# Identity mapping (hard-coded lab standard, every video): the LEFT half of
+# the screen is participant B (window side) and the RIGHT half is participant
+# A (door side).
 participants:
   - participant_id: left
     roi: [0.0, 0.0, 0.5, 1.0]

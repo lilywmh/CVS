@@ -61,16 +61,18 @@ sampling:
   sample_fps: 2.0
   max_frames_per_turn:
 
-# Default assumes a fixed camera with participant role A on the left and B on
-# the right. The runner maps SPEAKER_00/SPEAKER_01 to A/B using labeled_turns
-# role values and the discussion transcription log.
+# HARD-CODED lab standard for every video (fixed camera setup):
+# participant A = door side = video RIGHT half; B = window side = video LEFT
+# half. The runner enforces this and fails if a config contradicts it. The
+# runner maps SPEAKER_00/SPEAKER_01 to A/B using labeled_turns role values and
+# the discussion transcription log.
 participants:
   - participant_id: A
     speaker_label: A
-    roi: [0.0, 0.0, 0.5, 1.0]
+    roi: [0.5, 0.0, 1.0, 1.0]
   - participant_id: B
     speaker_label: B
-    roi: [0.5, 0.0, 1.0, 1.0]
+    roi: [0.0, 0.0, 0.5, 1.0]
 
 mediapipe:
   enabled: true

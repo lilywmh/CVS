@@ -53,10 +53,14 @@ OUTPUT_ROOT = Path(
     os.environ.get("CVS_VIDEO_OUTPUTS", PROJECT / "data" / "interim" / "video_behavior" / "side_question_runs")
 )
 
+# Side-to-identity mapping (hard-coded lab standard, every video):
+# left half of the screen = participant B (window side),
+# right half of the screen = participant A (door side).
 SIDE_ROIS = {
     "left": [0.0, 0.0, 0.5, 1.0],
     "right": [0.5, 0.0, 1.0, 1.0],
 }
+SIDE_TO_PARTICIPANT = {"left": "B", "right": "A"}
 
 POSE_HEAD_LANDMARK_IDS = {
     "nose": 0,

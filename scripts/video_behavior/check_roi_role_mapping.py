@@ -2,10 +2,13 @@
 """
 Create ROI/role QC outputs for a completed turn-aligned video run.
 
-The turn-aligned pipeline assumes participant role A is in the left ROI and B is
-in the right ROI unless the config says otherwise. This script makes that
-assumption auditable by exporting sampled frame overlays and summary tables. It
-does not modify raw videos or the source run outputs.
+Lab standard (hard-coded for every video): participant A (door side) occupies
+the RIGHT half of the frame and participant B (window side) the LEFT half.
+This script makes the ROI/role assignment auditable by exporting sampled frame
+overlays and summary tables. When auditing an old run, it reads that run's
+config_used.yaml, so overlays reflect what the run actually used (runs before
+2026-07-07 used the reversed, incorrect mapping). It does not modify raw
+videos or the source run outputs.
 
 Usage:
   python scripts/video_behavior/check_roi_role_mapping.py
@@ -27,9 +30,10 @@ PROJECT = Path(__file__).resolve().parents[2]
 TURN_RUNS = PROJECT / "data" / "interim" / "video_behavior" / "turn_runs"
 ANALYSIS_OUTPUTS = Path(os.environ.get("CVS_ANALYSIS_OUTPUTS", PROJECT / "05_analysis_outputs"))
 
+# Hard-coded lab standard: A = door side = video RIGHT, B = window side = LEFT.
 DEFAULT_ROIS = {
-    "A": [0.0, 0.0, 0.5, 1.0],
-    "B": [0.5, 0.0, 1.0, 1.0],
+    "A": [0.5, 0.0, 1.0, 1.0],
+    "B": [0.0, 0.0, 0.5, 1.0],
 }
 
 
@@ -360,7 +364,10 @@ def markdown_table(df: pd.DataFrame) -> str:
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, default=None, help="Completed turn-aligned video run directory.")
-    parser.add_argument("--out-dir", type=Path, default=ANALYSIS_OUTPUTS / "video_roi_role_qc", help="Output directory.")
+    parser.add_argument(
+        "--out-dir", type=Path, default=None,
+        help="Output directory. Default: 05_analysis_outputs/video_roi_role_qc/<source_run_id>/ "
+             "(run-scoped so frames from different runs are never mixed).")
     parser.add_argument("--max-per-participant-video", type=int, default=2, help="Sampled frames per participant per video.")
     parser.add_argument("--max-width", type=int, default=1280, help="Maximum saved overlay width in pixels.")
     parser.add_argument("--no-images", action="store_true", help="Only write tables and report, without frame overlays.")
@@ -370,7 +377,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_arg_parser().parse_args()
     run_dir = args.run_dir or latest_run_dir()
-    out_dir = args.out_dir
+    # Run-scoped default output dir: frames from different source runs (which
+    # may use different ROI mappings) must never be mixed in one folder.
+    out_dir = args.out_dir or (ANALYSIS_OUTPUTS / "video_roi_role_qc" / run_dir.name)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     turn, speaker, video_meta = load_tables(run_dir)

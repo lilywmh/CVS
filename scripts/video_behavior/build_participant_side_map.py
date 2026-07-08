@@ -1,14 +1,15 @@
-"""Build a per-session participant A/B <-> visual left/right side map.
+"""Verify the hard-coded participant A/B <-> visual left/right side mapping.
 
 Purpose
 -------
-All current video runners assume a single global ROI mapping (A = left half,
-B = right half). The lab standard is the opposite (A = door side, appearing on
-the RIGHT of the video; B = window side, appearing on the LEFT), and the
-FaceMesh mouth-motion QC contradicts the global assumption in most sessions.
-This script produces an inspectable, per-session side-map candidate so the
-mapping can be manually confirmed BEFORE any participant-attributed video
-feature is interpreted.
+The mapping is HARD-CODED for every video (fixed camera setup): A = door side
+= video RIGHT half; B = window side = video LEFT half. It is enforced by
+participant_roi_lookup() in run_turn_aligned_video_analysis.py. This script is
+the verification QC for that standard: it scores FaceMesh mouth-motion
+evidence per session against both side hypotheses and flags any session whose
+evidence contradicts the standard, so exceptions can be caught by manual frame
+inspection rather than assumed away. (Historical note: runs before 2026-07-07
+used the reversed mapping, which this QC originally exposed.)
 
 The script is purely additive: it reads existing QC outputs and writes a new
 candidate table. It does not modify any pipeline input, config, or prior run.

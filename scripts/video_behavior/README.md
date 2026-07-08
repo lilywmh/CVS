@@ -329,39 +329,45 @@ ${CVS_ANALYSIS_OUTPUTS:-05_analysis_outputs}/speaker_visual_mapping_qc/<run_id>/
 Use it as QC evidence before interpreting speaker/listener arm behavior. It
 does not modify source labels or rewrite the speaker log.
 
-## Participant Side Map (A/B to left/right)
+## Participant Side Mapping (hard-coded lab standard)
 
-The runners currently assume a single global ROI mapping (A = left half,
-B = right half). The lab standard is the opposite: **A = door side, appearing
-on the video RIGHT; B = window side, appearing on the video LEFT.** The
-mouth-motion QC contradicts the global default in most sessions, so the
-mapping must be resolved per session before any participant-attributed (A/B)
-feature is interpreted.
+Every recording uses the same fixed camera setup, so the mapping is
+HARD-CODED for all videos: **participant A (door side) occupies the video
+RIGHT half; participant B (window side) occupies the video LEFT half.**
+
+Enforcement: `run_turn_aligned_video_analysis.py` defines
+`PARTICIPANT_SIDE_STANDARD` and `participant_roi_lookup()` raises a CRITICAL
+`PipelineError` if a config assigns A/B to the wrong side. All scripts that
+share `participant_roi_lookup` (including `check_speaker_visual_mapping.py`)
+inherit this enforcement. `run_question_side_video_analysis.py` documents the
+same identity mapping as `SIDE_TO_PARTICIPANT = {"left": "B", "right": "A"}`.
+
+History note: turn runs created before 2026-07-07 used the reversed mapping
+(A = left). Their participant-attributed outputs (`per_speaker_summary`,
+`per_participant_arm_summary`, `speaker_listener_arm_comparison`,
+`per_turn_arm_role_features`, and per-turn speaker features) measured the
+wrong person and must be regenerated with a fresh run. Side-level
+(left/right) outputs from `run_question_side_video_analysis.py` are
+unaffected.
+
+Verification QC (optional but recommended once per dataset):
 
 ```bash
 python scripts/video_behavior/build_participant_side_map.py \
-  --mapping-run 05_analysis_outputs/speaker_visual_mapping_qc/speaker_visual_mapping_full
+  --mapping-run 05_analysis_outputs/speaker_visual_mapping_qc/<run_id>
 ```
 
-Writes to `${CVS_ANALYSIS_OUTPUTS:-05_analysis_outputs}/participant_side_map/`:
+This scores mouth-motion evidence for the A-left vs A-right hypotheses per
+session and flags sessions whose evidence contradicts the hard-coded standard
+(`needs_manual_review = True`).
 
-```text
-participant_side_map_candidate.csv   one row per dyad x session
-participant_side_map_summary.md      review instructions and flagged sessions
-run_manifest.json                    inputs (sha256), parameters, version
-```
-
-Decision logic: mouth-motion evidence scores the A-left vs A-right hypotheses
-per session; strong two-sided evidence decides the side, otherwise the lab
-standard (A = right) is used as the prior and the session is flagged
-`needs_manual_review`. Review flagged sessions against
-`video_roi_role_qc/review_frames/` or raw video, fill `manual_side_A` and set
-`review_status = confirmed`, then promote the confirmed table to
-`04_data/participant_side_map.csv`. Downstream runners should consume only the
-confirmed table (integration patch pending).
-
-This script is additive QC: it never modifies configs, source labels, or
-existing run outputs.
+Authority note (user decision, 2026-07-07): the manually corrected
+aligned/review SRT speaker labels are authoritative. Mouth-motion QC is
+advisory only — flags reflect face-detection noise, not swapped seating. The
+hard-coded standard applies to every video with no per-session exceptions;
+do not override the mapping based on mouth-motion evidence alone. The script
+is additive QC: it never modifies configs, source labels, or existing run
+outputs.
 
 ## Time-Window Speaker/Listener/Silent Roles
 
