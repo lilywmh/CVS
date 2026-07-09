@@ -19,7 +19,6 @@ dependencies:
   - pytorch
   - torchaudio
   - librosa
-  - soundfile
   - pip:
       - anthropic
       - openai
@@ -27,3 +26,7 @@ dependencies:
       - sentence-transformers
       - speechbrain
       - transformers
+      - opencv-python
+      - mediapipe==0.10.14
+      - PyYAML
+      - soundfile

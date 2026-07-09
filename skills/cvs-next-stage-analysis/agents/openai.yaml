@@ -1,0 +1,3 @@
+display_name: CVS Next Stage Analysis
+short_description: Audit CVS analysis results.
+default_prompt: Use this skill to audit sample sizes, reconcile analysis outputs, and plan the next scientific step for the CVS conversation project.

@@ -26,6 +26,9 @@ variables such as `CVS_DATA`, `CVS_SRT_ROOT`, `CVS_WHISPERX_OUTPUTS`, and
 | Corrected transcripts | `01_pipeline/all_srt/{piper,cloudy}/*.txt` | text, LLM, label-transfer scripts | Restricted unless de-identified |
 | WhisperX SRTs | `01_pipeline/outputs/<session>/*.srt` | `align_manual_labels_to_whisperx.py` | Restricted/intermediate |
 | 16 kHz WAV files | `01_pipeline/_wav/*_16k.wav` | acoustic scripts | Restricted |
+| Discussion videos | `01_pipeline/video/*.{mp4,mov,m4v,avi,mkv}` | video-behavior scripts | Restricted |
+| Video behavior run directories | `data/interim/video_behavior/runs/<run_id>/` | `run_video_analysis.py` | Generated; do not commit |
+| Turn-aligned video behavior run directories | `data/interim/video_behavior/turn_runs/<run_id>/` | `run_turn_aligned_video_analysis.py` | Generated; do not commit |
 | Transcription log | `04_data/Discussion Transcription Log - Sheet1.csv` | role mapping | Check for identifiers before sharing |
 | Outcomes | `04_data/outcomes.csv` | modeling scripts | Share if de-identified |
 | Semantic features | `04_data/scientific_dyad_analysis_results.csv` | model/plot scripts | Share if de-identified |
@@ -33,6 +36,11 @@ variables such as `CVS_DATA`, `CVS_SRT_ROOT`, `CVS_WHISPERX_OUTPUTS`, and
 | LLM features | `05_analysis_outputs/llm_annotation_output/dyad_features.csv` | LLM/model scripts | Share if text-free and de-identified |
 | Acoustic turns | `04_data/acoustic_turns.csv` | vocal-alignment scripts | Share if de-identified |
 | Vocal alignment | `04_data/vocal_alignment_dyad.csv` | dissociation/plot scripts | Share if de-identified |
+| Primary floor-transfer vocal alignment | `04_data/vocal_alignment_floor_transfer_dyad.csv` | vocal-alignment/model scripts | Share if de-identified |
+| Floor-transfer excluded turns | `04_data/vocal_alignment_floor_transfer_excluded_turns.csv` | vocal-alignment QC | Check text snippets before sharing |
+| Video behavior | `04_data/video_behavior_dyad.csv` | video-behavior/model scripts | Share if de-identified and face images are not included |
+| Video behavior final outputs | `data/interim/video_behavior/runs/<run_id>/final/*.csv` | video-behavior/model scripts | Share only after de-identification review |
+| Turn-aligned video behavior outputs | `data/interim/video_behavior/turn_runs/<run_id>/results/*.csv` | video-behavior/model scripts | Share only after de-identification review |
 
 For public replication, prefer sharing de-identified derived tables rather than
 raw recordings or full transcripts.
