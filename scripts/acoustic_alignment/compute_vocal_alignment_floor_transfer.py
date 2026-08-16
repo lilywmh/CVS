@@ -46,7 +46,8 @@ Edge-aware variant: alignment is also computed on turn-EDGE prosody
 (speaker A's turn-offset -> speaker B's turn-onset), which is the most
 defensible "sub-second" entrainment signal at the transition point.
 
-Output: one row per (pair_id, condition) with columns like
+Output: one row per (dyad_id, pair_id, condition) when ``dyad_id`` is present,
+or per (pair_id, condition) for legacy inputs, with columns like
   va_f0_proximity, va_f0_convergence, va_f0_synchrony,
   va_int_*, va_rate_*, plus edge_* variants and n_switch.
 
@@ -118,7 +119,7 @@ def classify_backchannels(df, max_words):
     df = df.copy()
     df["is_backchannel"] = False
     for _, idx in df.groupby(["dyad_id", "condition"]).groups.items():
-        g = df.loc[idx].sort_values("t_start")
+        g = df.loc[idx].sort_values("t_start", kind="mergesort")
         order = g.index.tolist()
         for k, i in enumerate(order):
             words = _norm_text(df.at[i, "text"]).split() if "text" in df else []
@@ -173,12 +174,43 @@ def zscore_within_speaker(df, col):
 
 
 def _adjacent_pairs(turns):
-    """Yield (prev_row, next_row) for every speaker switch, in time order."""
-    turns = turns.sort_values("t_start").reset_index(drop=True)
+    """Yield valid original-sequence speaker switches in time order.
+
+    When ``_pair_eligible`` is present, both original adjacent rows must be
+    eligible. This prevents filtering from creating artificial adjacency over
+    an excluded turn. When ``_exclude_overlap`` is true, the incoming turn must
+    start at or after the outgoing turn ends, matching the local-entrainment
+    convention that excludes turns overlapping their predecessor.
+    """
+    # Preserve source transcript order when timestamps tie.
+    turns = turns.sort_values("t_start", kind="mergesort").reset_index(drop=True)
     for i in range(1, len(turns)):
         a, b = turns.iloc[i - 1], turns.iloc[i]
-        if a["speaker"] != b["speaker"]:
-            yield a, b
+        if a["speaker"] == b["speaker"]:
+            continue
+        if "_pair_eligible" in turns and not (
+            bool(a["_pair_eligible"]) and bool(b["_pair_eligible"])
+        ):
+            continue
+        if "_exclude_overlap" in turns and bool(b["_exclude_overlap"]):
+            if float(b["t_start"]) < float(a["t_end"]):
+                continue
+        yield a, b
+
+
+def _expected_abs_difference(a, b):
+    """Exact E|A-B| over all cross-pairs, without Monte Carlo noise."""
+    a = np.asarray(a, dtype=float)
+    b = np.sort(np.asarray(b, dtype=float))
+    if not len(a) or not len(b):
+        return np.nan
+    prefix = np.concatenate([[0.0], np.cumsum(b)])
+    total = 0.0
+    for value in a:
+        split = int(np.searchsorted(b, value, side="right"))
+        total += value * split - prefix[split]
+        total += (prefix[-1] - prefix[split]) - value * (len(b) - split)
+    return float(total / (len(a) * len(b)))
 
 
 def proximity(turns, col, rng, n_shuffle):
@@ -244,9 +276,9 @@ def edge_alignment(turns, offset_col, onset_col, rng, n_shuffle):
     off = np.array([p[0] for p in pairs])
     on = np.array([p[1] for p in pairs])
     adj = np.abs(off - on)
-    # proximity vs shuffled baseline
-    base = [np.mean(np.abs(off - rng.permutation(on))) for _ in range(n_shuffle)]
-    prox = float(np.mean(base) - adj.mean())
+    # Exact expected shuffled baseline. This is the expectation of the former
+    # permutation estimator but removes seed/order-dependent Monte Carlo noise.
+    prox = float(_expected_abs_difference(off, on) - adj.mean())
     # convergence
     x = np.arange(len(adj), dtype=float)
     conv = float(-np.polyfit(x, adj, 1)[0])
@@ -259,7 +291,11 @@ def edge_alignment(turns, offset_col, onset_col, rng, n_shuffle):
 def process_session(turns, cfg, rng):
     """All vocal-alignment features for one (pair_id, condition)."""
     n_switch = sum(1 for _ in _adjacent_pairs(turns))
-    row = {"n_turns": len(turns), "n_switch": n_switch}
+    eligible = (
+        turns["_pair_eligible"].fillna(False).astype(bool)
+        if "_pair_eligible" in turns else pd.Series(True, index=turns.index)
+    )
+    row = {"n_turns": int(eligible.sum()), "n_switch": n_switch}
     if n_switch < cfg["min_switches"]:
         return row  # too sparse; downstream can drop on n_switch
 
@@ -267,6 +303,10 @@ def process_session(turns, cfg, rng):
         if whole not in turns:
             continue
         t = turns.copy()
+        if "_pair_eligible" in t:
+            for column in (whole, onset, offset):
+                if column and column in t:
+                    t.loc[~eligible, column] = np.nan
         # z-score within speaker for f0 / intensity (not rate)
         if feat in ("f0", "int"):
             t[whole] = zscore_within_speaker(t, whole)
@@ -286,13 +326,16 @@ def process_session(turns, cfg, rng):
 
 
 def _compute_all_sessions(df, cfg, rng):
+    session_keys = (["dyad_id", "pair_id", "condition"]
+                    if "dyad_id" in df.columns else ["pair_id", "condition"])
     rows = []
-    for (pid, cond), grp in df.groupby(["pair_id", "condition"]):
+    for key, grp in df.groupby(session_keys):
+        key = key if isinstance(key, tuple) else (key,)
         feats = process_session(grp, cfg, rng)
-        feats.update({"pair_id": pid, "condition": cond})
+        feats.update(dict(zip(session_keys, key)))
         rows.append(feats)
     out = pd.DataFrame(rows)
-    lead = ["pair_id", "condition", "n_turns", "n_switch"]
+    lead = session_keys + ["n_turns", "n_switch"]
     return out[lead + [c for c in out.columns if c not in lead]]
 
 
@@ -310,13 +353,18 @@ def surrogate_test(df, cfg, rng):
     feats = {k: v[0] for k, v in FEATURES.items()}
     # collect per-session A/B adjacency series for each feature
     series = {f: [] for f in feats}
-    for (_pid, _cond), grp in df.groupby(["pair_id", "condition"]):
+    session_keys = (["dyad_id", "pair_id", "condition"]
+                    if "dyad_id" in df.columns else ["pair_id", "condition"])
+    for key, grp in df.groupby(session_keys):
         if sum(1 for _ in _adjacent_pairs(grp)) < cfg["min_switches"]:
             continue
         for f, col in feats.items():
             if col not in grp:
                 continue
             t = grp.copy()
+            if "_pair_eligible" in t:
+                eligible = t["_pair_eligible"].fillna(False).astype(bool)
+                t.loc[~eligible, col] = np.nan
             if f in ("f0", "int"):
                 t[col] = zscore_within_speaker(t, col)
             a_s, b_s = [], []
@@ -324,31 +372,64 @@ def surrogate_test(df, cfg, rng):
                 if np.isfinite(a[col]) and np.isfinite(b[col]):
                     a_s.append(a[col]); b_s.append(b[col])
             if len(a_s) >= 4:
-                series[f].append((np.array(a_s), np.array(b_s)))
+                series[f].append({
+                    "key": key,
+                    "speakers": frozenset(grp["speaker"].astype(str).unique()),
+                    "a": np.array(a_s),
+                    "b": np.array(b_s),
+                })
 
     def _corr(a, b):
         n = min(len(a), len(b))
-        if n < 4 or np.std(a[:n]) == 0 or np.std(b[:n]) == 0:
+        if n < 4:
             return np.nan
-        return np.corrcoef(a[:n], b[:n])[0, 1]
+        ia = np.linspace(0, len(a) - 1, n).round().astype(int)
+        ib = np.linspace(0, len(b) - 1, n).round().astype(int)
+        sampled_a, sampled_b = a[ia], b[ib]
+        if np.std(sampled_a) == 0 or np.std(sampled_b) == 0:
+            return np.nan
+        return np.corrcoef(sampled_a, sampled_b)[0, 1]
+
+    def _assignment(records):
+        n = len(records)
+        # SPEAKER_00-style labels are session-local and cannot identify shared
+        # participants. UUID-like CANDOR labels are global, so enforce no shared
+        # participant there as well as no same-session pairing.
+        counts = {}
+        for record in records:
+            for speaker in record["speakers"]:
+                counts[speaker] = counts.get(speaker, 0) + 1
+        globally_identified = max(counts.values(), default=0) < n / 2
+        for _ in range(10000):
+            assignment = rng.permutation(n)
+            valid = all(i != int(j) for i, j in enumerate(assignment))
+            if valid and globally_identified:
+                valid = all(
+                    records[i]["speakers"].isdisjoint(records[int(j)]["speakers"])
+                    for i, j in enumerate(assignment)
+                )
+            if valid:
+                return assignment
+        raise RuntimeError("Could not construct a valid pseudo-session permutation")
 
     rows = []
     for f, lst in series.items():
         if len(lst) < 3:
             continue
-        real = np.nanmean([_corr(a, b) for a, b in lst])
+        real = np.nanmean([_corr(record["a"], record["b"]) for record in lst])
         pseudo_means = []
-        for _ in range(cfg["n_surrogate"] // 50):
-            vals = []
-            for _ in range(50):
-                i, j = rng.integers(0, len(lst), size=2)
-                if i == j:
-                    continue
-                vals.append(_corr(lst[i][0], lst[j][1]))  # A_i vs B_j
-            if vals:
-                pseudo_means.append(np.nanmean(vals))
+        for _ in range(cfg["n_surrogate"]):
+            assignment = _assignment(lst)
+            values = [
+                _corr(record["a"], lst[int(assignment[i])]["b"])
+                for i, record in enumerate(lst)
+            ]
+            pseudo_means.append(np.nanmean(values))
         pseudo_means = np.array(pseudo_means)
-        p = (np.sum(np.abs(pseudo_means) >= abs(real)) + 1) / (len(pseudo_means) + 1)
+        centered = pseudo_means - np.nanmean(pseudo_means)
+        p = (
+            np.sum(np.abs(centered) >= abs(real - np.nanmean(pseudo_means))) + 1
+        ) / (len(pseudo_means) + 1)
         rows.append({"feature": f, "metric": "synchrony",
                      "real_mean": round(float(real), 4),
                      "pseudo_mean": round(float(np.nanmean(pseudo_means)), 4),
@@ -382,8 +463,11 @@ def run(cfg):
     excluded.to_csv(excluded_path, index=False)
     print(f"[qc] excluded-turn table -> {excluded_path}")
 
-    # --- MAIN: valid full-floor-transfer turns only --------------------------
-    main = _compute_all_sessions(df[df["is_primary_floor_transfer"]], cfg, rng)
+    # --- MAIN: original-adjacent, non-overlapping valid floor transfers ------
+    main_input = df.copy()
+    main_input["_pair_eligible"] = main_input["is_primary_floor_transfer"]
+    main_input["_exclude_overlap"] = True
+    main = _compute_all_sessions(main_input, cfg, rng)
     main.to_csv(cfg["out"], index=False)
     print(f"[main, invalid/short/low-coverage/backchannels EXCLUDED] "
           f"{len(main)} sessions x {main.shape[1]} "
@@ -391,18 +475,28 @@ def run(cfg):
 
     # --- SENSITIVITY: include timestamp-valid non-short turns, including BC ---
     sens_path = str(cfg["out"]).replace(".csv", "_with_bc.csv")
-    sensitivity_df = df[
-        ~df["floor_transfer_exclusion_reason"].str.contains(
-            "invalid_timestamp|short_turn|low_alignment_coverage", regex=True, na=False
-        )
-    ]
+    sensitivity_df = df.copy()
+    sensitivity_df["_pair_eligible"] = ~sensitivity_df[
+        "floor_transfer_exclusion_reason"
+    ].str.contains(
+        "invalid_timestamp|short_turn|low_alignment_coverage", regex=True, na=False
+    )
+    sensitivity_df["_exclude_overlap"] = True
     sens = _compute_all_sessions(sensitivity_df, cfg, rng)
     sens.to_csv(sens_path, index=False)
     print(f"[sensitivity, backchannels INCLUDED but invalid/short/low-coverage excluded] -> {sens_path}")
 
+    # --- SENSITIVITY: retain overlaps, while preserving original adjacency ---
+    overlap_path = str(cfg["out"]).replace(".csv", "_with_overlap.csv")
+    overlap_df = main_input.copy()
+    overlap_df["_exclude_overlap"] = False
+    overlap = _compute_all_sessions(overlap_df, cfg, rng)
+    overlap.to_csv(overlap_path, index=False)
+    print(f"[sensitivity, overlaps INCLUDED] -> {overlap_path}")
+
     # --- SURROGATE: real vs pseudo-dyad synchrony (chance test) ---------------
     surr_path = str(cfg["out"]).replace(".csv", "_surrogate.csv")
-    surr = surrogate_test(df[df["is_primary_floor_transfer"]], cfg, rng)
+    surr = surrogate_test(main_input, cfg, rng)
     surr.to_csv(surr_path, index=False)
     print(f"[surrogate, real vs pseudo-dyad] -> {surr_path}")
     if not surr.empty:

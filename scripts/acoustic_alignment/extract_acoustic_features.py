@@ -410,10 +410,11 @@ def process_turns_csv(cfg):
     rows = []
     import parselmouth
     sound_cache = {}
+    has_row_wav = "wav_path" in turns_df.columns
     for (dyad_id, cond), grp in tqdm(turns_df.groupby(["dyad_id", "condition"]),
                                      desc="sessions"):
         sound = None
-        if not cfg.get("dry_run"):
+        if not cfg.get("dry_run") and not has_row_wav:
             key = f"{dyad_id}_{cond}"
             if key not in sound_cache:
                 stem = f"{dyad_id}_{cond}_discussion"
@@ -425,9 +426,18 @@ def process_turns_csv(cfg):
         n_fail = 0
         for _, t in grp.iterrows():
             row = t.to_dict()
-            if sound is not None and t["t_end"] > t["t_start"]:
+            row_sound = sound
+            if has_row_wav and not cfg.get("dry_run"):
+                wav = t.get("wav_path")
+                if isinstance(wav, str) and wav:
+                    if wav not in sound_cache:
+                        sound_cache[wav] = parselmouth.Sound(wav) if Path(wav).exists() else None
+                        if sound_cache[wav] is None:
+                            print(f"[warn] no row-level WAV: {wav}")
+                    row_sound = sound_cache[wav]
+            if row_sound is not None and t["t_end"] > t["t_start"]:
                 try:
-                    ac = extract_turn_acoustics(sound, t["t_start"], t["t_end"],
+                    ac = extract_turn_acoustics(row_sound, t["t_start"], t["t_end"],
                                                 t.get("text", ""), cfg)
                     row.update(asdict(ac))
                 except Exception as e:  # never let one turn kill the session
