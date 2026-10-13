@@ -376,6 +376,31 @@ def run_human(a) -> None:
                    .agg(question_drift=("question_drift", "mean"),
                         cumulative_walk=("cumulative_walk", "mean")).reset_index())
     walk_traj.to_csv(out / "trajectory_walk_human.csv", index=False)
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+        qs = sorted(walk_traj.question.unique())
+        for q in qs:
+            t = walk_traj[walk_traj.question == q]
+            x = (t["bin"] + 0.5) / 5
+            axes[0].plot(x, t["question_drift"], marker="o", label=f"Q{q}")
+            axes[1].plot(x, t["cumulative_walk"], marker="o", label=f"Q{q}")
+        axes[0].set_xlabel("Position within question")
+        axes[0].set_ylabel("Question drift (cosine distance)")
+        axes[0].set_title("Drift from question anchor")
+        axes[1].set_xlabel("Position within question")
+        axes[1].set_ylabel("Cumulative walk (path length)")
+        axes[1].set_title("Random-walk path length")
+        for ax in axes:
+            ax.legend(frameon=False, fontsize=8)
+            ax.spines[["top", "right"]].set_visible(False)
+        fig.tight_layout()
+        fig.savefig(out / "walk_trajectory.png", dpi=200)
+        plt.close(fig)
+    except ImportError:
+        pass
 
     # keyword validation of the film score (lexicon v1, core terms only)
     own_only = df[(df.kw_own_film > 0) & (df.kw_off_film == 0)]
@@ -589,6 +614,30 @@ def compare_topic(a, run, items, act, scorer) -> None:
         ax.spines[["top", "right"]].set_visible(False)
         fig.tight_layout()
         fig.savefig(out / "trajectory.png", dpi=200)
+        plt.close(fig)
+        # walk trajectory: question_drift real vs sim
+        walk_traj = (df.assign(bin=pd.cut(df.pos, 5, labels=False))
+                       .groupby(["source", "bin"])
+                       .agg(question_drift=("question_drift", "mean"),
+                            cumulative_walk=("cumulative_walk", "mean")).reset_index())
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+        for s, lab in (("real", "Real strangers"), ("sim", "LLM agents")):
+            t = walk_traj[walk_traj.source == s]
+            x = (t["bin"] + 0.5) / 5
+            axes[0].plot(x, t["question_drift"], marker="o", label=lab)
+            axes[1].plot(x, t["cumulative_walk"], marker="o", label=lab)
+        axes[0].set_xlabel("Position within question")
+        axes[0].set_ylabel("Question drift (cosine distance)")
+        axes[0].set_title("Drift from question anchor")
+        axes[1].set_xlabel("Position within question")
+        axes[1].set_ylabel("Cumulative walk (path length)")
+        axes[1].set_title("Random-walk path length")
+        for ax in axes:
+            ax.legend(frameon=False, fontsize=8)
+            ax.spines[["top", "right"]].set_visible(False)
+        fig.tight_layout()
+        fig.savefig(out / "walk_trajectory.png", dpi=200)
+        plt.close(fig)
     except ImportError:
         pass
 
