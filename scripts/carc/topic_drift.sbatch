@@ -4,7 +4,7 @@
 #SBATCH --partition=main
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=01:00:00
+#SBATCH --time=03:00:00
 #SBATCH --output=logs/topic_drift_%j.out
 #SBATCH --error=logs/topic_drift_%j.err
 #
@@ -17,8 +17,7 @@
 #
 # Inputs : 04_data/acoustic_turns.csv, 04_data/outcomes.csv, the run dirs in RUNS
 # Outputs: 05_analysis_outputs/llm_sim_partner/drift_* (one dir per analysis)
-#          Per run: summary.md, windows/segments/items CSVs, walk_trajectory.png,
-#          topic_transitions.png, km_transitions.png
+#          Per run: summary.md, windows/segments/items CSVs, walk_trajectory.png
 #
 # Examples:
 #   sbatch --export=ALL,RUNS="05_analysis_outputs/llm_sim_partner/run_X_topic_jobN 05_analysis_outputs/llm_sim_partner/run_Y_turn_jobM" \
@@ -28,6 +27,7 @@
 #   sbatch --export=ALL,MODEL=sentence-transformers/all-mpnet-base-v2,WINDOW=5,RUNS="<run dirs>" \
 #          scripts/carc/topic_drift.sbatch
 
+source /etc/profile
 set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-/scratch1/$USER/cvs_conversation}"
@@ -54,6 +54,7 @@ case "$(command -v python)" in
 esac
 # keep BLAS/OpenMP thread pools to the cores Slurm gave us
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}" OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}" MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export PYTHONUNBUFFERED=1
 echo "python: $(which python)"
 python -c 'import numpy, pandas, sentence_transformers, sklearn; print("env ok: numpy", numpy.__version__, "sklearn", sklearn.__version__)' || { echo "cvs-vllm environment is broken; see the error above" >&2; exit 1; }
 

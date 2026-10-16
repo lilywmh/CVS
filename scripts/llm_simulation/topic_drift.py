@@ -324,6 +324,7 @@ def tests_row(label: str, d: pd.DataFrame, col: str, null: float = 0.0) -> dict:
 # human                                                                       #
 # --------------------------------------------------------------------------- #
 def run_human(a) -> None:
+    print("[human] loading data ...", flush=True)
     units = spt.load_floor_units(spt.INPUT_CSV).sort_values(["dyad_id", "condition", "unit"])
     rows = []
     for (d, c, q), g in units.groupby(["dyad_id", "condition", "question"], sort=False):
@@ -332,8 +333,11 @@ def run_human(a) -> None:
             rows.append({"dyad_id": d, "pair_id": int(g.pair_id.iloc[0]), "condition": c,
                          "order": g.order.iloc[0], "question": int(q),
                          "seg_n_units": len(segs), **w})
+    print(f"[human] {len(rows)} windows built, scoring ...", flush=True)
     scorer = Scorer(make_backend(a))
+    print(f"[human] backend ready: {scorer.backend.name}", flush=True)
     df, emb_matrix, question_embs = scorer.score(rows, return_embeddings=True)
+    print(f"[human] scoring done, {len(df)} rows", flush=True)
     df = df[df.n_words >= a.min_words].copy()
     keep_idx = df.index.to_numpy()
     emb_matrix = emb_matrix[keep_idx]
@@ -400,118 +404,6 @@ def run_human(a) -> None:
         fig.savefig(out / "walk_trajectory.png", dpi=200)
         plt.close(fig)
     except ImportError:
-        pass
-
-    # ---- topic transition matrix (emb_label) ----
-    labels_used = sorted(df[df.emb_label != "short"].emb_label.unique())
-    trans_rows = []
-    for (d, c, q), g in df.groupby(["dyad_id", "condition", "question"], sort=False):
-        labs = g.emb_label.values
-        for i in range(len(labs) - 1):
-            if labs[i] != "short" and labs[i + 1] != "short":
-                trans_rows.append({"question": int(q), "from": labs[i], "to": labs[i + 1]})
-    trans_df = pd.DataFrame(trans_rows)
-    # overall transition matrix (row-normalised)
-    trans_mat = pd.crosstab(trans_df["from"], trans_df["to"], normalize="index").round(3)
-    # per-question: what fraction of transitions leave the film topic?
-    film_exit = []
-    for q, tg in trans_df.groupby("question"):
-        from_film = tg[tg["from"] == "film"]
-        film_exit.append({"question": int(q),
-                          "n_from_film": len(from_film),
-                          "stay_film": (from_film["to"] == "film").mean() if len(from_film) else np.nan,
-                          "exit_film": (from_film["to"] != "film").mean() if len(from_film) else np.nan})
-    film_exit_df = pd.DataFrame(film_exit)
-    # top exit destinations from film, by question
-    exit_dest = (trans_df[trans_df["from"] == "film"].groupby(["question", "to"]).size()
-                 .rename("count").reset_index()
-                 .sort_values(["question", "count"], ascending=[True, False]))
-    exit_dest.to_csv(out / "topic_transitions.csv", index=False)
-    # transition heatmap
-    try:
-        fig, ax = plt.subplots(figsize=(6, 5))
-        im = ax.imshow(trans_mat.values, cmap="YlOrRd", aspect="auto", vmin=0, vmax=1)
-        ax.set_xticks(range(len(trans_mat.columns)))
-        ax.set_xticklabels(trans_mat.columns, rotation=45, ha="right", fontsize=8)
-        ax.set_yticks(range(len(trans_mat.index)))
-        ax.set_yticklabels(trans_mat.index, fontsize=8)
-        ax.set_xlabel("To")
-        ax.set_ylabel("From")
-        ax.set_title("Topic transition probabilities")
-        for i in range(len(trans_mat.index)):
-            for j in range(len(trans_mat.columns)):
-                v = trans_mat.values[i, j]
-                ax.text(j, i, f"{v:.2f}", ha="center", va="center",
-                        fontsize=7, color="white" if v > 0.5 else "black")
-        fig.colorbar(im, ax=ax, shrink=0.8)
-        fig.tight_layout()
-        fig.savefig(out / "topic_transitions.png", dpi=200)
-        plt.close(fig)
-    except Exception:
-        pass
-
-    # ---- k-means clustering (data-driven) ----
-    from sklearn.cluster import KMeans
-    valid_mask = df.emb_label != "short"
-    emb_valid = emb_matrix[valid_mask.values]
-    K_RANGE = range(4, 9)
-    best_k, best_score = 4, -1
-    if len(emb_valid) > 10:
-        from sklearn.metrics import silhouette_score
-        for k in K_RANGE:
-            km = KMeans(n_clusters=k, n_init=10, random_state=42).fit(emb_valid)
-            s = silhouette_score(emb_valid, km.labels_, sample_size=min(2000, len(emb_valid)),
-                                 random_state=42)
-            if s > best_score:
-                best_k, best_score = k, s
-    km_final = KMeans(n_clusters=best_k, n_init=10, random_state=42).fit(emb_valid)
-    df.loc[valid_mask, "km_cluster"] = km_final.labels_
-    # label each cluster by majority emb_label vote (disambiguate ties with index)
-    cluster_labels = {}
-    valid_df = df[valid_mask]
-    used_labels = {}
-    for ci in range(best_k):
-        mask_ci = valid_df.km_cluster == ci
-        if mask_ci.any():
-            base = valid_df.loc[mask_ci, "emb_label"].mode().iloc[0]
-        else:
-            base = "unknown"
-        used_labels[base] = used_labels.get(base, 0) + 1
-        cluster_labels[ci] = f"{base}_{used_labels[base]}" if used_labels[base] > 1 else base
-    df["km_label"] = df["km_cluster"].map(cluster_labels)
-    # k-means transition matrix
-    km_trans_rows = []
-    for (d, c, q), g in df.groupby(["dyad_id", "condition", "question"], sort=False):
-        labs = g.km_label.values
-        for i in range(len(labs) - 1):
-            if pd.notna(labs[i]) and pd.notna(labs[i + 1]):
-                km_trans_rows.append({"question": int(q), "from": labs[i], "to": labs[i + 1]})
-    km_trans_df = pd.DataFrame(km_trans_rows)
-    km_trans_mat = pd.crosstab(km_trans_df["from"], km_trans_df["to"],
-                               normalize="index").round(3) if len(km_trans_df) else pd.DataFrame()
-    km_cluster_sizes = df[valid_mask].groupby("km_label").size().rename("n_windows").reset_index()
-    km_cluster_sizes["pct"] = (100 * km_cluster_sizes.n_windows / km_cluster_sizes.n_windows.sum()).round(1)
-    try:
-        if len(km_trans_mat):
-            fig, ax = plt.subplots(figsize=(5, 4))
-            im = ax.imshow(km_trans_mat.values, cmap="YlOrRd", aspect="auto", vmin=0, vmax=1)
-            ax.set_xticks(range(len(km_trans_mat.columns)))
-            ax.set_xticklabels(km_trans_mat.columns, rotation=45, ha="right", fontsize=8)
-            ax.set_yticks(range(len(km_trans_mat.index)))
-            ax.set_yticklabels(km_trans_mat.index, fontsize=8)
-            ax.set_xlabel("To")
-            ax.set_ylabel("From")
-            ax.set_title(f"K-means topic transitions (k={best_k})")
-            for i in range(len(km_trans_mat.index)):
-                for j in range(len(km_trans_mat.columns)):
-                    v = km_trans_mat.values[i, j]
-                    ax.text(j, i, f"{v:.2f}", ha="center", va="center",
-                            fontsize=7, color="white" if v > 0.5 else "black")
-            fig.colorbar(im, ax=ax, shrink=0.8)
-            fig.tight_layout()
-            fig.savefig(out / "km_transitions.png", dpi=200)
-            plt.close(fig)
-    except Exception:
         pass
 
     # keyword validation of the film score (lexicon v1, core terms only)
@@ -609,19 +501,6 @@ def run_human(a) -> None:
           fmt(pd.DataFrame([walk_seg_test])), "",
           "Positive mean = conversation wanders further from the question over time.", "",
           "### Walk trajectory: `trajectory_walk_human.csv`", "",
-          "## Topic transitions (emb_label)", "",
-          "Transition matrix: P(next window topic | current window topic), across all segments.", "",
-          fmt(trans_mat.reset_index().rename(columns={"from": "from \\ to"})), "",
-          "### Film-exit rate by question", "",
-          fmt(film_exit_df), "",
-          "exit_film = fraction of film-windows whose next window is NOT film. "
-          "Higher = conversation leaves film territory more often. "
-          "See `topic_transitions.csv` for destinations.", "",
-          f"## Data-driven topic clusters (k-means, k={best_k}, silhouette={best_score:.3f})", "",
-          fmt(km_cluster_sizes), "",
-          "Cluster labels assigned by nearest anchor (film synopsis or off-film category).", "",
-          "### K-means transition matrix", "",
-          fmt(km_trans_mat.reset_index().rename(columns={"from": "from \\ to"}) if len(km_trans_mat) else pd.DataFrame()), "",
           "## Exploratory: drift and connection (dyad level)", ""] + conn_md + [
           "", "## Validation", "",
           "Open `validation_extremes.csv`: the 20 highest and 20 lowest windows. Fill `looks_right` "
