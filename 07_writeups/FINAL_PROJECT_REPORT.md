@@ -9,17 +9,24 @@
 
 Computational studies of conversation often treat acoustic, linguistic, and visual coordination scores as stable properties of a pair and use them to predict social connection. This project tested that assumption before interpreting predictive models. The primary dataset contained 24 previously unacquainted dyads who completed 46 structured post-film discussions with corrected transcripts, shared-microphone audio, fixed-camera video, and postconversation surveys. A second analysis used 1,656 natural video conversations from the CANDOR corpus. The pipeline first tested whether an acoustic intensity-edge measure distinguished real turn transitions from participant-disjoint pseudo-pairs and within-session time shifts, then tested whether it reliably ranked sessions and dyads, and only then examined survey associations and out-of-sample prediction. Real transitions in the laboratory data showed greater proximity and synchrony than both null processes (all permutation *p* = .001), but split-half reliability was zero and cross-session test-retest correlations were negative. The dyad-level connection composite was also unreliable (Spearman-Brown reliability = .36), although participant-level multi-item scales were internally consistent. An in-sample acoustic increment of approximately .20 in *R*² did not translate into a reliable nested leave-one-dyad-out gain, and the corresponding CANDOR survey association was essentially zero. Pose-based video measures also added little predictive information. A corrected post hoc analysis identified shorter average turns as the strongest remaining correlate of partner evaluation (*r* = -.70), but this estimate is exploratory because it was discovered after the primary validation work, uses only 24 dyads, and relies on a marginally reliable dyad-level outcome. A CANDOR replication of the dynamic trajectory analysis found no replication of the laboratory turn-duration association and only negligible incremental dynamic effects. A semantic reflection-convergence test found weak evidence that discussion talk moved toward the partner's pre-discussion film interpretation (pseudo-dyad *p* = .032; within-dyad sign-flip *p* = .184). The central result is methodological: detecting coordination in aggregate does not establish a reliable individual-difference measure or a generalizable predictor.
 
-## 1. Research Question
+## 1. Introduction
 
-Conversation partners coordinate across multiple channels. They may adjust timing, pitch, intensity, wording, posture, and movement in response to one another. Acoustic-prosodic entrainment research commonly separates local proximity, convergence over time, and synchrony across successive turns (Levitan & Hirschberg, 2011). A practical pipeline may therefore extract alignment scores and test whether pairs with higher scores also report stronger social connection.
+Conversation leaves simultaneous traces in language, voice, and visible behavior. A transcript records who spoke, what they said, and how turns were organized. Audio carries pitch, intensity, timing, and speaking rate. Video captures movement and orientation. Multimodal analysis promises a richer account of interaction by combining these channels, and large corpora such as CANDOR make such analyses increasingly practical (Reece et al., 2023). These features are then used to predict social outcomes such as rapport, liking, or connection.
 
-That workflow contains an important hidden assumption: a measure that detects coordination across many conversations must also rank individual pairs reliably. These are different statistical questions. A population mean can differ from a null distribution even when the relative ordering of sessions is unstable. If the ordering is mostly measurement noise, correlation and machine-learning analyses can still produce attractive in-sample results, especially with many predictors and a small sample.
+The measurement problem begins before modalities are combined. A computational feature can distinguish real partners from artificial pairings, reproduce the ordering of dyads across repeated conversations, covary with partner evaluation, or improve predictions for held-out dyads. Each result supports a different claim. A feature can show an average interaction pattern without preserving stable differences between dyads. A population mean can differ from a null distribution even when the relative ordering of sessions is unstable.
 
-This project therefore adopted a reliability-first question:
+This distinction resembles the reliability paradox documented in cognitive tasks and functional neuroimaging: a task can produce a reproducible group effect while providing an unreliable measure of individual differences (Elliott et al., 2020; Hedge et al., 2018). Multimodal interaction research faces an analogous risk. If the relative ordering of sessions is mostly noise, correlation and machine-learning analyses can still produce attractive in-sample results, especially with many predictors and a small sample. Evidence that real conversations contain more synchrony than shuffled controls is evidence about an aggregate contrast; using synchrony to explain why one dyad reports more connection than another requires reproducible between-dyad variation.
 
-> Can multimodal conversational features be extracted reproducibly, shown to represent more than a null pairing process, measured reliably at the intended level, and used to explain or predict social connection without leakage?
+The issue is especially important for pairwise coordination features. Acoustic entrainment is commonly described through proximity, convergence, and synchrony (Levitan & Hirschberg, 2011). Similar constructions appear in language and movement research. These measures combine two time series or two sets of observations, often after filtering to moments when both speakers have usable data. The resulting score may detect an average interaction pattern while retaining little stable information about which dyad produced it. Adding such scores to a multimodal model can increase in-sample fit without improving prediction outside the analyzed sample.
 
-The work is framed as a pipeline-validation study and exploratory empirical pilot, not as a definitive test of whether coordination causes social connection.
+This project adopted a reliability-first approach: extract multimodal features, test whether they represent more than a null pairing process, assess reliability at the dyad level, and only then examine survey associations and out-of-sample prediction. The work is framed as a pipeline-validation study and exploratory empirical pilot, not as a definitive test of whether coordination causes social connection.
+
+The analysis addresses four research questions:
+
+1. **Detectability:** Do multimodal coupling features distinguish real interactions from pseudo-dyad and time-shift controls?
+2. **Reliability:** Do features reproduce between-dyad differences across repeated observations?
+3. **Association:** Among reliable features, which are associated with partner evaluation?
+4. **Prediction:** Do eligible features support prediction for held-out dyads?
 
 ## 2. Data
 
@@ -158,15 +165,31 @@ The preceding analyses measured structural and acoustic coordination. This secti
 
 ## 5. Discussion
 
+### 5.1 Main findings
+
 The project produced a clearer result by beginning with measurement rather than prediction. Real laboratory conversations contained detectable local intensity coordination, yet the derived score did not consistently rank the same sessions or dyads. Aggregate detectability and individual-difference reliability are therefore empirically separable. A null comparison answers whether a pattern exists on average; reliability answers whether observed differences between pairs can be reproduced. Only the second supports using the score as a stable predictor.
 
 This distinction explains why the original in-sample association and later predictive audit are not contradictory. The hierarchical regression describes the 24 observed dyads and remains reproducible as an in-sample association. Nested cross-validation asks whether the fitted relationship transfers to a held-out dyad when preprocessing and tuning are repeated without that dyad. The latter evidence was weak and model-dependent. It is more accurate to say that the association did not translate into reliable out-of-sample prediction than to say that it disappeared or was false.
 
+### 5.2 Feature construction and observation density
+
+Multimodal pipelines often organize features by sensor: text, audio, and video. These results suggest that feature construction is a more useful unit of evaluation. Counts and level summaries behaved differently from pairwise synchrony and convergence scores, even when they were derived from the same recordings. A sensor can provide stable raw measurements while a relational transformation built from those measurements fails to preserve stable between-dyad information. The same recordings that produced reliable speaker-level intensity (Spearman-Brown = .825) yielded intensity-edge alignment scores with zero split-half reliability.
+
+Observation density may help explain this pattern. Frame-level orientation and question-level semantic aggregates used many observations (G = .881 for mutual orientation), whereas turn-edge alignment measures were built from relatively few exchanges. Sparse relational statistics may vary more across short conversations. The contrast between stable transcript features (Spearman-Brown > .65 for most variables) and unstable acoustic alignment (Spearman-Brown approximately 0) is consistent with this interpretation, though a prospective analysis varying event count would be needed to test it directly.
+
+### 5.3 Reading positive and null results
+
+Measurement quality changes how null and positive results can be read. A nonsignificant coefficient for an unstable alignment score is ambiguous: it may reflect little true association or too much measurement error to detect one. The CANDOR intensity-edge null (*r* = .011, *n* = 1,653) is more informative because it has high statistical power, but it is still conditioned on a measure that failed its reliability gate. The turn-duration finding is the most interpretable because the behavioral measure was stable (Spearman-Brown = .94); its non-replication in CANDOR therefore narrows the boundary conditions rather than reflecting measurement failure.
+
 The outcome audit changed the interpretation as well. High alpha showed that participants used the partner-evaluation and shared-reality items coherently. Low partner ICC showed that their experiences were not interchangeable. Participant-level outcomes are therefore preferable for actor-partner questions, while any dyad-mean analysis must state that it models a weakly supported shared construct.
+
+### 5.4 Replication boundaries
 
 The post hoc turn-duration result offers a more promising next step because the behavioral measure itself was stable and interpretable. It also avoids the failed claim that actor and partner coefficients differed. A future study should preregister mean turn duration or a less mechanically dependent measure of turn exchange, preserve question and session levels, and collect repeated participant outcomes. Replication should test whether the effect survives independent data, alternative turn segmentation, and adjustment for total talk time without treating a ratio identity as a psychological mechanism.
 
 The CANDOR dynamic trajectory replication sharpened this caution. The laboratory turn-duration association (*r* = -.70) did not appear in 1,603 CANDOR conversations (*r* = .03), and dynamic trajectory summaries added negligible incremental variance even with 60-fold greater sample size. This non-replication may reflect differences in conversation structure (prompted five-question discussions vs. unstructured video calls), microphone configuration, or outcome measurement, but it means that mean turn duration should not yet be treated as a general predictor of connection. The reflection-convergence analysis similarly found no robust content-level mechanism: discussion talk showed only weak attraction toward the partner's pre-discussion interpretation, with no temporal trajectory and no cross-film consistency.
+
+### 5.5 Recommendations for multimodal pipeline design
 
 For pipeline design, three practices should become default. First, compare real coordination with nulls that preserve relevant structure. Second, report reliability at the exact level used in the downstream model. Third, nest every data-dependent preprocessing and tuning step inside held-out evaluation. LLM-generated labels should not be treated as validated behavioral codes until compared with independent human judgments.
 
@@ -200,9 +223,13 @@ Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate: A pr
 
 Cameron, A. C., & Miller, D. L. (2015). A practitioner's guide to cluster-robust inference. *Journal of Human Resources, 50*(2), 317-372. https://doi.org/10.3368/jhr.50.2.317
 
+Elliott, M. L., Knodt, A. R., Ireland, D., Morris, M. L., Poulton, R., Ramrakha, S., Sison, M. L., Moffitt, T. E., Caspi, A., & Hariri, A. R. (2020). What is the test–retest reliability of common task-functional MRI measures? *Psychological Science, 31*(7), 792–806.
+
 Freedman, D. A., & Lane, D. (1983). A nonstochastic interpretation of reported significance levels. *Journal of Business & Economic Statistics, 1*(4), 292-298. https://doi.org/10.1080/07350015.1983.10509354
 
 Gelman, A., & Stern, H. (2006). The difference between significant and not significant is not itself statistically significant. *The American Statistician, 60*(4), 328-331.
+
+Hedge, C., Powell, G., & Sumner, P. (2018). The reliability paradox: Why robust cognitive tasks do not produce reliable individual differences. *Behavior Research Methods, 50*(3), 1166–1186.
 
 Levitan, R., & Hirschberg, J. (2011). Measuring acoustic-prosodic entrainment with respect to multiple levels and dimensions. In *Proceedings of Interspeech 2011* (pp. 3081-3084). https://doi.org/10.21437/Interspeech.2011-771
 
